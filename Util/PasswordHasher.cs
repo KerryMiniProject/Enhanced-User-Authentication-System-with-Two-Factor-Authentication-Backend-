@@ -7,53 +7,54 @@
     public class PasswordHasher
     {
         Database db = new Database();
-        public string HashPassword(User user)
-        {
-            string? salt = GetSalt(user);
+        Procedure procedure = new Procedure();
+        //public string HashPassword(User user)
+        //{
+        //    string? salt = GetSalt(user);
 
-            // Convert the salt string back into a byte array
-            byte[] saltBytes = Convert.FromBase64String(salt);
+        //    // Convert the salt string back into a byte array
+        //    byte[] saltBytes = Convert.FromBase64String(salt);
 
-            // Hash the password using PBKDF2
-            int iterations = 10000; // Number of iterations
-            byte[] hashBytes = GetPbkdf2Bytes(user.Password, saltBytes, iterations, 32); // 32 is the desired hash length in bytes
+        //    // Hash the password using PBKDF2
+        //    int iterations = 10000; // Number of iterations
+        //    byte[] hashBytes = GetPbkdf2Bytes(user.Password, saltBytes, iterations, 32); // 32 is the desired hash length in bytes
 
-            // Combine the salt and hash bytes into a single string
-            byte[] hashWithSaltBytes = new byte[saltBytes.Length + hashBytes.Length];
-            Array.Copy(saltBytes, 0, hashWithSaltBytes, 0, saltBytes.Length);
-            Array.Copy(hashBytes, 0, hashWithSaltBytes, saltBytes.Length, hashBytes.Length);
+        //    // Combine the salt and hash bytes into a single string
+        //    byte[] hashWithSaltBytes = new byte[saltBytes.Length + hashBytes.Length];
+        //    Array.Copy(saltBytes, 0, hashWithSaltBytes, 0, saltBytes.Length);
+        //    Array.Copy(hashBytes, 0, hashWithSaltBytes, saltBytes.Length, hashBytes.Length);
 
-            string hashedPassword = Convert.ToBase64String(hashWithSaltBytes);
+        //    string hashedPassword = Convert.ToBase64String(hashWithSaltBytes);
 
-            return hashedPassword;
-        }
+        //    return hashedPassword;
+        //}
 
-        public string? GetSalt(User user)
-        {
-            db.startConnection();
-            db.openConnection();
+        //public string? GetSalt(User user)
+        //{
+        //    db.startConnection();
+        //    db.openConnection();
 
-            // Check if user exists, if exists get the salt from db
-            string? salt = db.executeProcedureGetSalt(user);
+        //    // Check if user exists, if exists get the salt from db
+        //    string? salt = db.executeProcedureGetSalt(user);
 
-            // If user does not exist then generate random salt
-            if (string.IsNullOrEmpty(salt))
-            {
-                byte[] saltBytes = new byte[16];
-                using (var rng = RandomNumberGenerator.Create())
-                {
-                    rng.GetBytes(saltBytes);
-                }
+        //    // If user does not exist then generate random salt
+        //    if (string.IsNullOrEmpty(salt))
+        //    {
+        //        byte[] saltBytes = new byte[16];
+        //        using (var rng = RandomNumberGenerator.Create())
+        //        {
+        //            rng.GetBytes(saltBytes);
+        //        }
 
-                salt = Convert.ToBase64String(saltBytes);
+        //        salt = Convert.ToBase64String(saltBytes);
 
-                // Consider storing the newly generated salt in the database for future use
-            }
+        //        // Consider storing the newly generated salt in the database for future use
+        //    }
 
-            db.closeConnection();
+        //    db.closeConnection();
 
-            return salt;
-        }
+        //    return salt;
+        //}
 
 
         public bool VerifyPassword(string password, string hashedPassword)
