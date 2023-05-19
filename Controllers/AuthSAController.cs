@@ -12,6 +12,7 @@ namespace AuthSA.Controllers
         PasswordHasher passwordHasher = new PasswordHasher();
         OTPProvider otpProvider = new OTPProvider();
         Database db = new Database();
+        Procedure procedure = new Procedure();
         //Auth auth = new Auth();
 
         //[HttpPost("/auth/sign-up")]
@@ -140,7 +141,7 @@ namespace AuthSA.Controllers
             try
             {
                 //check if user exists in db
-                bool ifUserExists = db.executeProcedureCheckIfUserExists(user);
+                bool ifUserExists = procedure.executeProcedureCheckIfUserExists(user);
                 db.closeConnection();
                 return Ok(jsonFactory.generateResponseUserExist(ifUserExists));             
             }
