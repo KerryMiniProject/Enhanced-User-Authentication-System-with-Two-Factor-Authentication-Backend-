@@ -38,16 +38,6 @@ namespace AuthSA.Util
             Connection.Open();
         }
 
-        
-
-        
-
-
-        
-
-        
-
-
 
         //move to helper
        
@@ -65,7 +55,7 @@ namespace AuthSA.Util
                     mail.Subject = "OTP Account";
                     mail.IsBodyHtml = true;
                     Random random = new Random();
-                    int otp = random.Next(1000, 9999);
+                    int otp = random.Next(100000, 999999);
                     string otpString = otp.ToString();
                     string connectionString = getConnectionString();
 
