@@ -14,15 +14,31 @@ namespace AuthSA.Controllers
         Database db = new Database();
         Procedure procedure = new Procedure();
 
+        public bool checkAuthAPIKey()
+        {
+            string apiKey = Request.Headers["API-Key"];
+            if(apiKey == "c6db5f66-8d1a-4498-833d-d2bc2349cd06")
+            {
+                return true;
+            }
+
+            return false;
+        }
+
         [HttpPost("/auth/sign-up")]
         public IActionResult SignUp([FromBody] User user)
         {
             JsonFactory jsonFactory = new JsonFactory();
+            if(checkAuthAPIKey() == false)
+            {
+                return StatusCode(401, jsonFactory.generateBadJson("There was an error"));
+            }
+            
             db.startConnection();
             db.openConnection();
             if(procedure.executeProcedureCheckIfUserExists(PhoneNo: user.PhoneNo) || procedure.executeProcedureCheckIfUserExists(Email: user.Email))
             {
-                return Ok(jsonFactory.generateBadJson("There was an error"));
+                return StatusCode(401, jsonFactory.generateBadJson("There was an error"));
             }
 
                 try
@@ -37,8 +53,8 @@ namespace AuthSA.Controllers
                 }
                 catch (Exception)
                 {
-                    return Ok(jsonFactory.generateBadJson("There was an error"));
-                }
+                return StatusCode(401, jsonFactory.generateBadJson("There was an error"));
+            }
         }
 
 
@@ -46,10 +62,15 @@ namespace AuthSA.Controllers
         [HttpPost("/auth/send-otp-to-email")]
         public IActionResult OtpEmail([FromBody] sendEmailOtpRequestBody emailRequest)
         {
-            db.startConnection();
-            db.openConnection();
             JsonFactory jsonFactory = new JsonFactory();
 
+            if (checkAuthAPIKey() == false)
+            {
+                return StatusCode(401, jsonFactory.generateBadJson("There was an error"));
+            }
+            db.startConnection();
+            db.openConnection();
+          
             try
             {
                 string guid = otpProvider.sendOTPEmail(emailRequest.Email);
@@ -59,7 +80,7 @@ namespace AuthSA.Controllers
             }
             catch (Exception)
             {
-                return Ok(StatusCode(401, jsonFactory.generateBadJson("There was a problem with the response body")));
+                return StatusCode(401, jsonFactory.generateBadJson("There was a problem with the response body"));
             } 
             
            
@@ -79,7 +100,10 @@ namespace AuthSA.Controllers
             JsonFactory jsonFactory = new JsonFactory();
             JsonResponseOtp responseOtp = new JsonResponseOtp();
             JsonResponseFromKerry resp = new JsonResponseFromKerry();
-
+            if (checkAuthAPIKey() == false)
+            {
+                return StatusCode(401, jsonFactory.generateBadJson("There was an error"));
+            }
             try
             {
                 decimal phone = Convert.ToDecimal(phoneNo.PhoneNo);
@@ -89,11 +113,11 @@ namespace AuthSA.Controllers
                     responseOtp = jsonFactory.generateResponseOtpPhone(resp);
                     return Ok(responseOtp);
                 }
-                return Ok(StatusCode(401, jsonFactory.generateBadJson("There was a problem with the request body")));
+                return StatusCode(401, jsonFactory.generateBadJson("There was a problem with the response body"));
             }
             catch (Exception)
             {
-                return Ok(StatusCode(401,jsonFactory.generateBadJson("There was a problem with the request body")));
+                return StatusCode(401, jsonFactory.generateBadJson("There was a problem with the response body"));
             }
         }
 
@@ -103,6 +127,10 @@ namespace AuthSA.Controllers
             JsonResponseOtpPhoneVerification responseOtp = new JsonResponseOtpPhoneVerification();
             OtpVerificationJsonResponseKerry resp = new OtpVerificationJsonResponseKerry();
             JsonFactory jsonFactory = new JsonFactory();
+            if (checkAuthAPIKey() == false)
+            {
+                return StatusCode(401, jsonFactory.generateBadJson("There was an error"));
+            }
             db.startConnection();
             db.openConnection();
             try
@@ -116,7 +144,7 @@ namespace AuthSA.Controllers
             catch (Exception)
             {
                 db.closeConnection();
-                return Ok(StatusCode(401, jsonFactory.generateBadJson("There was a problem with the request body")));
+                return StatusCode(401, jsonFactory.generateBadJson("There was a problem with the response body"));
             }
         }
 
@@ -125,6 +153,11 @@ namespace AuthSA.Controllers
         {
             JsonResponseOtpEmailVerification response = new JsonResponseOtpEmailVerification();
             JsonFactory jsonFactory = new JsonFactory();
+
+            if (checkAuthAPIKey() == false)
+            {
+                return StatusCode(401, jsonFactory.generateBadJson("There was an error"));
+            }
             db.startConnection();
             db.openConnection();
             try
@@ -137,7 +170,7 @@ namespace AuthSA.Controllers
             catch (Exception)
             {
                 db.closeConnection();
-                return Ok(StatusCode(401, jsonFactory.generateBadJson("There was a problem with the request body")));
+                return StatusCode(401, jsonFactory.generateBadJson("There was a problem with the request body"));
             }
             
         }
@@ -147,6 +180,11 @@ namespace AuthSA.Controllers
         public IActionResult CheckIfUserExists([FromBody] checkUserExistsRequestBody userDetails)
         {
             JsonFactory jsonFactory = new JsonFactory();
+
+            if (checkAuthAPIKey() == false)
+            {
+                return StatusCode(401, jsonFactory.generateBadJson("There was an error"));
+            }   
             db.startConnection();
             db.openConnection();
 
@@ -159,7 +197,7 @@ namespace AuthSA.Controllers
             }
             catch(Exception)
             {
-                return Ok(StatusCode(401,jsonFactory.generateBadJson("There is an error with the response body")));
+                return StatusCode(401, jsonFactory.generateBadJson("There is an error with the response body"));
             }
            
         }

@@ -4,6 +4,7 @@ namespace AuthSA.Util
 {
     public class Utility
     {
+
         public bool IsValidEmail(string email)
         {
             // Regex pattern for email validation
