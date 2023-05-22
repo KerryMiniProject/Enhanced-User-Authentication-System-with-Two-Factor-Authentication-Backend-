@@ -66,7 +66,6 @@ namespace AuthSA.Util
             }
             else
             {
-                // Todo: Handle the error based on your requirements
                 throw new Exception($"The request failed with status code: {response.StatusCode}");
             }
         }
@@ -78,7 +77,7 @@ namespace AuthSA.Util
             TwilioClient.Init(accountSid, authToken);
             Random random = new Random();
             int otp = random.Next(1000, 9999);
-            string otpString = otp.ToString(); // Replace with the recipient's phone number
+            string otpString = otp.ToString(); 
             string message = $"Your OTP is: {otpString}";
 
 
