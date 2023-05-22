@@ -1,5 +1,8 @@
 ﻿using AuthSA.Model;
 using Newtonsoft.Json;
+using System.Data.SqlClient;
+using System.Net.Mail;
+using System.Net;
 using System.Text;
 using Twilio;
 using Twilio.Rest.Api.V2010.Account;
@@ -9,6 +12,8 @@ namespace AuthSA.Util
 {
     public class OTPProvider 
     {
+
+        Database db = new Database();
        public async Task<JsonResponseFromKerry> SendOtpToPhoneHelper(string phoneNumber)
         {
             // Create HttpClient instance
@@ -92,5 +97,69 @@ namespace AuthSA.Util
             return UserOtp.Equals(ServerOtp);
         }
 
+
+
+        public string sendOTPEmail(string email)
+        {
+            Guid g = Guid.NewGuid();
+            string guid = g.ToString();
+            db.startConnection();
+            db.openConnection();
+            try
+            {
+                using (MailMessage mail = new MailMessage())
+                {
+                    mail.From = new MailAddress("kerex1234@gmail.com");
+                    mail.To.Add(email);
+                    mail.Subject = "OTP Account";
+                    mail.IsBodyHtml = true;
+                    Random random = new Random();
+                    int otp = random.Next(100000, 999999);
+                    string otpString = otp.ToString();
+                    string connectionString = db.getConnectionString();
+
+
+                    string selectQuery = $"SELECT COUNT(*) FROM [dbo].[otpEmail] WHERE [Email] = '{email}'";
+                    SqlCommand selectCommand = new SqlCommand(selectQuery, db.Connection);
+                    int emailCount = (int)selectCommand.ExecuteScalar();
+
+                    if (emailCount > 0)
+                    {
+                        string updateQuery = $"UPDATE [dbo].[otpEmail] SET [GUID] = '{guid}', [OTP] = '{otpString}' WHERE [Email] = '{email}'";
+                        SqlCommand updateCommand = new SqlCommand(updateQuery, db.Connection);
+                        updateCommand.ExecuteNonQuery();
+                    }
+                    else
+                    {
+                        string insertQuery = $"INSERT INTO [dbo].[otpEmail] ([GUID], [Email], [OTP]) VALUES ('{guid}', '{email}', '{otpString}')";
+                        SqlCommand insertCommand = new SqlCommand(insertQuery, db.Connection);
+                        insertCommand.ExecuteNonQuery();
+                    }
+                    string body = $"<h1>Hello</h1><p>This is your OTP {otpString} </p><br><img src=\"cid:qrCodeImage\">";
+                    AlternateView htmlView = AlternateView.CreateAlternateViewFromString(body, null, "text/html");
+                    mail.AlternateViews.Add(htmlView);
+
+                    // Send the email
+                    var smtpClient = new SmtpClient("smtp.gmail.com")
+                    {
+                        Port = 587,
+                        Credentials = new NetworkCredential("kerex1234@gmail.com", "ozyptkpymdssoxau"),
+                        EnableSsl = true,
+                    };
+
+                    smtpClient.Send(mail);
+
+                }
+                db.closeConnection();
+                return guid;
+
+            }
+            catch (Exception)
+            {
+                db.closeConnection();
+                throw new Exception();
+
+            }
+        }
     }
 }

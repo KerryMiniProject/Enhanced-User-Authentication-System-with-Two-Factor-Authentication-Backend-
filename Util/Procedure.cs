@@ -77,25 +77,25 @@ namespace AuthSA.Util
             db.closeConnection();
         }
 
-        public bool executeProcedureCheckIfUserExists(User user)
+        public bool executeProcedureCheckIfUserExists(checkUserExistsRequestBody userDetail)
         {
             db.startConnection();
             db.openConnection();
-            if (string.IsNullOrEmpty(user.Email) && string.IsNullOrEmpty(user.PhoneNo))
+            if (string.IsNullOrEmpty(userDetail.Email) && string.IsNullOrEmpty(userDetail.PhoneNo))
                 throw new ArgumentException("Both Email and PhoneNo can't be null.");
 
             SqlCommand ifExists = new SqlCommand("EXEC dbo.CheckIfUserExists  @email, @phoneNum", db.Connection);
 
-            ifExists.Parameters.AddWithValue("@email", (object)user.Email ?? DBNull.Value);
-            ifExists.Parameters.AddWithValue("@phoneNum", (object)user.PhoneNo ?? DBNull.Value);
+            ifExists.Parameters.AddWithValue("@email", (object)userDetail.Email ?? DBNull.Value);
+            ifExists.Parameters.AddWithValue("@phoneNum", (object)userDetail.PhoneNo ?? DBNull.Value);
 
-            if (user.Email != null && !util.IsValidEmail(user.Email))
+            if (userDetail.Email != null && !util.IsValidEmail(userDetail.Email))
             {
                 db.closeConnection();
                 throw new Exception();
             }
 
-            if (user.PhoneNo != null && !util.IsValidPhoneNumber(user.PhoneNo))
+            if (userDetail.PhoneNo != null && !util.IsValidPhoneNumber(userDetail.PhoneNo))
             {
                 db.closeConnection();
                 throw new Exception();
