@@ -47,7 +47,6 @@ namespace AuthSA.Util
             request.Headers.Add("accept", "application/json");
             request.Headers.Add("AppID", "OTPService_Api");
             request.Headers.Add("AppKey", "BF2E74B7-F2FE-44D7-9816-8C8D20981444");
-            request.Headers.Add("Content-Type", "application/json-patch+json");
 
 
 

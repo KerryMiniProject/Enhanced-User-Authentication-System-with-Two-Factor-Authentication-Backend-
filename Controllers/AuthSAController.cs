@@ -37,7 +37,7 @@ namespace AuthSA.Controllers
                 return Ok(jsonFactory.generateResponseOtpEmail(user, guid));
 
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return Ok(StatusCode(401, jsonFactory.generateBadJson("There was a problem with the response body")));
             } 
@@ -71,65 +71,35 @@ namespace AuthSA.Controllers
                 }
                 return Ok(StatusCode(401, jsonFactory.generateBadJson("There was a problem with the request body")));
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return Ok(StatusCode(401,jsonFactory.generateBadJson("There was a problem with the request body")));
             }
         }
 
-        //[HttpPost("/auth/verify-phone-otp")]
-        //public async Task<IActionResult> VerifyOtp([FromBody] OtpVerificationRequestBody otpVerificationRequestBody)
-        //{
-        //    JsonResponse response = new JsonResponse();
-        //    JsonResponseOtpVerification responseOtp = new JsonResponseOtpVerification();
-        //    OtpVerificationJsonResponseKerry resp = new OtpVerificationJsonResponseKerry();
-        //    db.startConnection();
-        //    db.openConnection();
-        //    try
-        //    {
-        //        resp = await otpProvider.VerifyOTP(otpVerificationRequestBody);
-        //        responseOtp = new JsonResponseOtpVerification();
-        //        responseOtp = response.successOtp(resp);
-        //        db.closeConnection();
-        //        return Ok(responseOtp);
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        db.closeConnection();
-        //        return Ok(response.badAuthOtp());
-        //    }
-        //}
+        [HttpPost("/auth/verify-phone-otp")]
+        public async Task<IActionResult> VerifyOtp([FromBody] OtpVerificationRequestBody otpVerificationRequestBody)
+        {
+            JsonResponseOtpVerification responseOtp = new JsonResponseOtpVerification();
+            OtpVerificationJsonResponseKerry resp = new OtpVerificationJsonResponseKerry();
+            JsonFactory jsonFactory = new JsonFactory();
+            db.startConnection();
+            db.openConnection();
+            try
+            {
+                resp = await otpProvider.VerifyOTP(otpVerificationRequestBody);
+                responseOtp = new JsonResponseOtpVerification();
+                responseOtp = jsonFactory.generateSuccessfulOtpPhoneVerificicationResponse(resp);
+                db.closeConnection();
+                return Ok(responseOtp);
+            }
+            catch (Exception)
+            {
+                db.closeConnection();
+                return Ok(StatusCode(401, jsonFactory.generateBadJson("There was a problem with the request body")));
+            }
+        }
 
-
-
-
-
-
-
-
-        //check if user exists
-        //bool ifExists = db.executeProcedureCheckIfUserExists(user);
-        //if(ifExists)
-        //{
-        //    return Ok(response.success(displayEn: "Account already exists", displayTh: "บัญชีมีอยู่แล้ว"));
-        //}
-
-        //string? otp;
-        //string? guid;
-        //try
-        //{
-        //    otp = otpProvider.sendOTP(user.PhoneNo);
-        //    guid = Guid.NewGuid().ToString();
-        //    db.insertIntoOtpTable(guid, otp, user.PhoneNo);
-        //    db.closeConnection();
-        //    responseOtp = response.successOtp(otp, guid);
-        //    return Ok(responseOtp);
-        //}
-        //catch(Exception e)
-        //{
-        //    return Ok(StatusCode(401, response.badAuthOtp()));
-        //}    
-    
 
         [HttpPost("/auth/check-user-exist")]
         public IActionResult CheckIfUserExists([FromBody] User user)
@@ -145,7 +115,7 @@ namespace AuthSA.Controllers
                 db.closeConnection();
                 return Ok(jsonFactory.generateResponseUserExist(ifUserExists));             
             }
-            catch(Exception e)
+            catch(Exception)
             {
                 return Ok(StatusCode(401,jsonFactory.generateBadJson("There is an error with the response body")));
             }

@@ -52,6 +52,19 @@ namespace AuthSA.Model
             jsonResponse.reference = respKerry.Reference;
             return jsonResponse;
         }
+
+        public JsonResponseOtp generateResponseOtpPhoneVerification(OtpVerificationJsonResponseKerry respKerry)
+        {
+            JsonResponseOtp jsonResponse = new JsonResponseOtp();
+            jsonResponse.error = false;
+            jsonResponse.code = "200";
+            jsonResponse.description = "OK";
+            jsonResponse.display = "Successfully";
+            jsonResponse.token = respKerry.Token;
+            jsonResponse.reference = respKerry.Reference;
+            return jsonResponse;
+        }
+
         public JsonResponseIfUserExists generateResponseUserExist(bool ifExist)
         {
             JsonResponseIfUserExists jsonResponse = new JsonResponseIfUserExists();
@@ -71,9 +84,9 @@ namespace AuthSA.Model
             return jsonResponse;
         }
 
-        public JsonResponse generateBadJson(string? error)
+        public JsonResponseFactory generateBadJson(string? error)
         {
-            JsonResponse jsonResponse = new JsonResponse();
+            JsonResponseFactory jsonResponse = new JsonResponseFactory();
             jsonResponse.error = true;
             jsonResponse.code = "401";
             jsonResponse.description = "Unauthorized";
@@ -81,115 +94,34 @@ namespace AuthSA.Model
             return jsonResponse;
         }
 
-        
+        public JsonResponseOtpVerification generateSuccessfulOtpPhoneVerificicationResponse(OtpVerificationJsonResponseKerry respKerry)
+        {
+            JsonResponseOtpVerification jsonResponse = new JsonResponseOtpVerification();
+            jsonResponse.error = false;
+            jsonResponse.code = "200";
+            jsonResponse.description = "OK";
+            jsonResponse.display = "Successfully";
+            jsonResponse.token = respKerry.Token;
+            jsonResponse.reference = respKerry.Reference;
+            jsonResponse.otp = respKerry.Otp;
+            jsonResponse.recipient = respKerry.Recipient;
+            jsonResponse.isValidOtp = respKerry.IsValidOtp;
+            return jsonResponse;
+        }
+
+
     }
 
 
-    public class JsonResponse
+    public class JsonResponseFactory
     {
         public bool? error { get; set; }
         public string? code { get; set; }
         public string? description { get; set; }
         public string? display { get; set; }
 
-
-
-
-        public JsonResponse success(string? displayEn = null, string? displayTh = null)
-        {
-            JsonResponse jsonResponse = new JsonResponse();
-            Display display = new Display();
-            jsonResponse.error = false;
-            jsonResponse.code = "200";
-            display.th = (displayTh == null) ? "สำเร็จ" : displayTh;
-            display.en = (displayEn == null) ? "Successfully" : displayEn;
-            jsonResponse.description = "OK";
-            jsonResponse.display = "Successfully";
-            return jsonResponse;
-        }
-
-        //public JsonResponseOtp successOtp(JsonResponseFromKerry respKerry)
-        //{
-        //    JsonResponseOtp jsonResponse = new JsonResponseOtp();
-        //    Display display = new Display();
-        //    jsonResponse.error = false;
-        //    jsonResponse.code = "200";
-        //    display.th = "สำเร็จ";
-        //    display.en = "Successfully";
-        //    jsonResponse.description = "OK";
-        //    jsonResponse.display = display;
-        //    jsonResponse.token = respKerry.Token;
-        //    jsonResponse.reference = respKerry.Reference;
-
-        //    return jsonResponse;
-        //}
-
-        public JsonResponseOtpVerification successOtp(OtpVerificationJsonResponseKerry respKerry)
-        {
-            JsonResponseOtpVerification jsonResponse = new JsonResponseOtpVerification();
-            Display display = new Display();
-            jsonResponse.error = false;
-            jsonResponse.code = "200";
-            display.th = "สำเร็จ";
-            display.en = "Successfully";
-            jsonResponse.description = "OK";
-            jsonResponse.display = display;
-            jsonResponse.responseOtpVerification = respKerry;
-            return jsonResponse;
-        }
-
-
-
-        public JsonResponse respOtp()
-        {
-            JsonResponse jsonResponse = new JsonResponse();
-            Display display = new Display();
-            jsonResponse.error = false;
-            jsonResponse.code = "200";
-            display.th = "สำเร็จ";
-            display.en = "Successfully";
-            jsonResponse.description = "OK";
-            jsonResponse.display = "Successfully";
-            return jsonResponse;
-        }
-
-        public JsonResponse badAuth(string? displayEn = null, string? displayTh = null)
-        {
-            JsonResponse jsonResponse = new JsonResponse();
-            Display display = new Display();
-            jsonResponse.error = error;
-            jsonResponse.code = "401";
-            jsonResponse.description = "Unauthorized";
-            display.th = (displayTh == null) ? "ไม่ได้รับอนุญำต" : displayTh;
-            display.en = (displayEn == null) ? "Unauthorized" : displayEn;
-            jsonResponse.display = "Unauthorized";
-            return jsonResponse;
-        }
-
-        //public JsonResponseOtp badAuthOtp()
-        //{
-        //    JsonResponseOtp jsonResponse = new JsonResponseOtp();
-        //    Display display = new Display();
-        //    jsonResponse.error = error;
-        //    jsonResponse.code = "401";
-        //    jsonResponse.description = "Unauthorized";
-        //    display.th = "ไม่ได้รับอนุญำต";
-        //    display.en = "Unauthorized";
-        //    jsonResponse.display = display;
-        //    return jsonResponse;
-        //}
-
-
-
-
-
-
     }
-    public class Display
-    {
-        public string? th { get; set; }
-        public string? en { get; set; }
-    }
+
 
     public class JsonResponseFromKerry
     {
@@ -216,17 +148,18 @@ namespace AuthSA.Model
         public string? reference { get; set; }
 
     }
-    //otp response and req
 
     public class JsonResponseOtpVerification
     {
         public bool? error { get; set; }
         public string? code { get; set; }
         public string? description { get; set; }
-        public Display? display { get; set; }
-        public OtpVerificationJsonResponseKerry? responseOtpVerification { get; set; }
-
-
+        public string? display { get; set; }
+        public string? token { get; set; }
+        public string? reference { get; set; }
+        public string? otp { get; set; }
+        public string? recipient { get; set; }
+        public bool? isValidOtp { get; set; }
     }
 
     public class OtpVerificationJsonResponseKerry
