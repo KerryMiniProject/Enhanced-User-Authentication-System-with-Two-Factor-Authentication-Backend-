@@ -133,20 +133,20 @@ namespace AuthSA.Util
             return resultBool;
         }
 
-        public bool executeProcedureVerifyOtp(string guid, string otp, string phoneNo)
+        public bool executeProcedureVerifyEmailOtp(string guid, string otp, string email)
         {
             db.startConnection();
             db.openConnection();
-            SqlCommand ifExists = new SqlCommand("EXEC dbo.CheckOtp  @Guid, @Otp, @PhoneNo", db.Connection);
+            SqlCommand ifExists = new SqlCommand("EXEC dbo.CheckOtpEmail  @Guid, @Email, @Otp", db.Connection);
             SqlParameter guidparameter = new SqlParameter("@Guid", SqlDbType.VarChar);
+            SqlParameter emailParameter = new SqlParameter("@Email", SqlDbType.NVarChar);
             SqlParameter otpparameter = new SqlParameter("@Otp", SqlDbType.VarChar);
-            SqlParameter phoneNoParameter = new SqlParameter("@PhoneNo", SqlDbType.NVarChar);
             ifExists.Parameters.Add(guidparameter);
             ifExists.Parameters.Add(otpparameter);
-            ifExists.Parameters.Add(phoneNoParameter);
+            ifExists.Parameters.Add(emailParameter);
             ifExists.Parameters["@Guid"].Value = guid;
+            ifExists.Parameters["@Email"].Value = email;
             ifExists.Parameters["@Otp"].Value = otp;
-            ifExists.Parameters["@PhoneNo"].Value = phoneNo;
             ifExists.ExecuteNonQuery();
             SqlDataReader readerLabelDetails = ifExists.ExecuteReader();
             string result = "";
@@ -160,9 +160,6 @@ namespace AuthSA.Util
             bool resultBool = Convert.ToBoolean(resultLowerCase);
             return resultBool;
         }
-
-
-
 
     }
 }

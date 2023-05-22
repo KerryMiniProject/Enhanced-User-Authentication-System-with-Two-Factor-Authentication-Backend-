@@ -78,9 +78,9 @@ namespace AuthSA.Controllers
         }
 
         [HttpPost("/auth/verify-phone-otp")]
-        public async Task<IActionResult> VerifyOtp([FromBody] OtpVerificationRequestBody otpVerificationRequestBody)
+        public async Task<IActionResult> VerifyOtp([FromBody] OtpPhoneVerificationRequestBody otpVerificationRequestBody)
         {
-            JsonResponseOtpVerification responseOtp = new JsonResponseOtpVerification();
+            JsonResponseOtpPhoneVerification responseOtp = new JsonResponseOtpPhoneVerification();
             OtpVerificationJsonResponseKerry resp = new OtpVerificationJsonResponseKerry();
             JsonFactory jsonFactory = new JsonFactory();
             db.startConnection();
@@ -88,7 +88,7 @@ namespace AuthSA.Controllers
             try
             {
                 resp = await otpProvider.VerifyOTP(otpVerificationRequestBody);
-                responseOtp = new JsonResponseOtpVerification();
+                responseOtp = new JsonResponseOtpPhoneVerification();
                 responseOtp = jsonFactory.generateSuccessfulOtpPhoneVerificicationResponse(resp);
                 db.closeConnection();
                 return Ok(responseOtp);
@@ -98,6 +98,28 @@ namespace AuthSA.Controllers
                 db.closeConnection();
                 return Ok(StatusCode(401, jsonFactory.generateBadJson("There was a problem with the request body")));
             }
+        }
+
+        [HttpPost("/auth/verify-email-otp")]
+        public async Task<IActionResult> VerifyEmailOtp([FromBody] OtpEmailVerificationRequestBody requestBody)
+        {
+            JsonResponseOtpEmailVerification response = new JsonResponseOtpEmailVerification();
+            JsonFactory jsonFactory = new JsonFactory();
+            db.startConnection();
+            db.openConnection();
+            try
+            {
+                bool istrue = procedure.executeProcedureVerifyEmailOtp(requestBody.Token, requestBody.Otp, requestBody.Email);
+                response = jsonFactory.generateSuccessfulOtpEmailVerificicationResponse(requestBody, istrue);
+                db.closeConnection();
+                return Ok(response);
+            }
+            catch (Exception)
+            {
+                db.closeConnection();
+                return Ok(StatusCode(401, jsonFactory.generateBadJson("There was a problem with the request body")));
+            }
+            
         }
 
 

@@ -1,9 +1,16 @@
 ﻿namespace AuthSA.Model
 {
-    public class OtpVerificationRequestBody
+    public class OtpPhoneVerificationRequestBody
     {
         public string? Token { get; set; }
         public string? Reference { get; set; }
+        public string? Otp { get; set; }
+    }
+
+    public class OtpEmailVerificationRequestBody
+    {
+        public string? Token { get; set; }
+        public string? Email { get; set; }
         public string? Otp { get; set; }
     }
 
