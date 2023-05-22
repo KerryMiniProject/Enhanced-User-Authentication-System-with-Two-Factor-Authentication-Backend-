@@ -103,7 +103,7 @@ namespace AuthSA.Util
                 }
                 return guid;
             }
-            catch(Exception ex)
+            catch(Exception)
             {
                 throw new Exception();
             }
