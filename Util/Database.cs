@@ -43,7 +43,6 @@ namespace AuthSA.Util
         {
             SqlCommand getLabelDetails = new SqlCommand(query, Connection);
             getLabelDetails.ExecuteNonQuery();
-
         }
 
 

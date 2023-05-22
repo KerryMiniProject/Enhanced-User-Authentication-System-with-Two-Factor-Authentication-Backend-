@@ -71,18 +71,6 @@ namespace AuthSA.Util
             }
         }
 
-
-        public bool verifyOTP(string guid, string otp, string email)
-        {
-            db.startConnection();
-            db.openConnection();
-            bool result = procedure.executeProcedureVerifyEmailOtp(guid,otp,email);
-            db.closeConnection();
-            return result;
-        }
-
-
-
         public string sendOTPEmail(string email)
         {
             if(!util.IsValidEmail(email))

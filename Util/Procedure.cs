@@ -8,37 +8,6 @@ namespace AuthSA.Util
     {
         Utility util = new Utility();
         Database db = new Database();
-  
-        public void insertIntoOtpTable(string id, string otp, string phoneNo)
-        {
-            db.startConnection();
-            db.openConnection();
-            using (SqlCommand command = new SqlCommand("SELECT COUNT(*) FROM Otp WHERE PhoneNo = @phoneNo", db.Connection))
-            {
-                command.Parameters.AddWithValue("@phoneNo", phoneNo);
-
-                int existingRows = (int)command.ExecuteScalar();
-
-                if (existingRows == 0)
-                {
-                    SqlCommand insertCommand = new SqlCommand("INSERT INTO Otp(GUID, Otp, PhoneNo) VALUES (@id, @otp, @phoneNo)", db.Connection);
-                    insertCommand.Parameters.AddWithValue("@id", id);
-                    insertCommand.Parameters.AddWithValue("@otp", otp);
-                    insertCommand.Parameters.AddWithValue("@phoneNo", phoneNo);
-                    insertCommand.ExecuteNonQuery();
-                }
-                else
-                {
-                    SqlCommand updateCommand = new SqlCommand("UPDATE Otp SET GUID = @id, Otp = @otp WHERE PhoneNo = @phoneNo", db.Connection);
-                    updateCommand.Parameters.AddWithValue("@id", id);
-                    updateCommand.Parameters.AddWithValue("@otp", otp);
-                    updateCommand.Parameters.AddWithValue("@phoneNo", phoneNo);
-                    updateCommand.ExecuteNonQuery();
-                }
-            }
-            db.closeConnection();
-        }
-
         public void insertIntoPasswordTable(User user, string salt)
         {
             db.startConnection();
@@ -114,24 +83,6 @@ namespace AuthSA.Util
             return resultBool;
         }
 
-        public bool helperProcedureCheckUserExist(SqlCommand ifExists)
-        {
-            ifExists.ExecuteNonQuery();
-
-            SqlDataReader readerLabelDetails = ifExists.ExecuteReader();
-            string result = "";
-
-            if (readerLabelDetails.Read())
-            {
-                result = readerLabelDetails[0].ToString();
-            }
-
-            readerLabelDetails.Close();
-
-            string resultLowerCase = result.ToLower();
-            bool resultBool = Convert.ToBoolean(resultLowerCase);
-            return resultBool;
-        }
 
         public bool executeProcedureVerifyEmailOtp(string guid, string otp, string email)
         {

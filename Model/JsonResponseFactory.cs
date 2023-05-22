@@ -71,17 +71,6 @@ namespace AuthSA.Model
             return jsonResponse;
         }
 
-        public JsonResponseOtp generateResponseOtpPhoneVerification(OtpVerificationJsonResponseKerry respKerry)
-        {
-            JsonResponseOtp jsonResponse = new JsonResponseOtp();
-            jsonResponse.error = false;
-            jsonResponse.code = "200";
-            jsonResponse.description = "OK";
-            jsonResponse.display = "Successfully";
-            jsonResponse.token = respKerry.Token;
-            jsonResponse.reference = respKerry.Reference;
-            return jsonResponse;
-        }
 
         public JsonResponseIfUserExists generateResponseUserExist(bool ifExist)
         {

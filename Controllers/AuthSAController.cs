@@ -20,8 +20,11 @@ namespace AuthSA.Controllers
             JsonFactory jsonFactory = new JsonFactory();
             db.startConnection();
             db.openConnection();
-            if (!procedure.executeProcedureCheckIfUserExists(Email: user.Email) || !procedure.executeProcedureCheckIfUserExists(PhoneNo: user.PhoneNo))
+            if(procedure.executeProcedureCheckIfUserExists(PhoneNo: user.PhoneNo) || procedure.executeProcedureCheckIfUserExists(Email: user.Email))
             {
+                return Ok(jsonFactory.generateBadJson("There was an error"));
+            }
+
                 try
                 {
                     string hashed = passwordHasher.HashPassword(user);
@@ -36,15 +39,6 @@ namespace AuthSA.Controllers
                 {
                     return Ok(jsonFactory.generateBadJson("There was an error"));
                 }
-            }
-            else
-            {
-                return Ok(jsonFactory.generateBadJson("User already exists"));
-            }
-                
-            
-
-
         }
 
 

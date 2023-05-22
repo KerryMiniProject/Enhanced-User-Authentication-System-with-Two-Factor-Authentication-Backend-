@@ -15,10 +15,4 @@
         public string? Password { get; set; }
     }
 
-    public class OtpSendEmailResponse
-    {
-        public string? Guid { get; set; }
-        public string? Email { get; set; }
-    }
-
 }
