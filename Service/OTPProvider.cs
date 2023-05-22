@@ -4,9 +4,7 @@ using System.Data.SqlClient;
 using System.Net.Mail;
 using System.Net;
 using System.Text;
-using Twilio;
-using Twilio.Rest.Api.V2010.Account;
-
+using AuthSA.Service.Database;
 
 namespace AuthSA.Util
 {

@@ -1,12 +1,7 @@
-﻿using AuthSA.Model;
-using System.ComponentModel;
-using System.Data;
-using System.Data.SqlClient;
-using System.Net.Mail;
-using System.Net;
-using System.Text.RegularExpressions;
+﻿using System.Data.SqlClient;
 
-namespace AuthSA.Util
+
+namespace AuthSA.Service.Database
 {
     public class Database
     {

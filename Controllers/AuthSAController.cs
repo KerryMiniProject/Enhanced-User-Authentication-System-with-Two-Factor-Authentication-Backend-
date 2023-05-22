@@ -1,4 +1,5 @@
 ﻿using AuthSA.Model;
+using AuthSA.Service.Database;
 using AuthSA.Util;
 using Microsoft.AspNetCore.Mvc;
 
@@ -13,6 +14,7 @@ namespace AuthSA.Controllers
         OTPProvider otpProvider = new OTPProvider();
         Database db = new Database();
         Procedure procedure = new Procedure();
+        JsonFactory jsonFactory = new JsonFactory();
 
         public bool checkAuthAPIKey()
         {
@@ -28,7 +30,6 @@ namespace AuthSA.Controllers
         [HttpPost("/auth/sign-up")]
         public IActionResult SignUp([FromBody] User user)
         {
-            JsonFactory jsonFactory = new JsonFactory();
             if(checkAuthAPIKey() == false)
             {
                 return StatusCode(401, jsonFactory.generateBadJson("There was an error"));
@@ -62,7 +63,6 @@ namespace AuthSA.Controllers
         [HttpPost("/auth/send-otp-to-email")]
         public IActionResult OtpEmail([FromBody] sendEmailOtpRequestBody emailRequest)
         {
-            JsonFactory jsonFactory = new JsonFactory();
 
             if (checkAuthAPIKey() == false)
             {
@@ -97,7 +97,6 @@ namespace AuthSA.Controllers
         [HttpPost("/auth/send-otp-to-phone")]
         public async Task<IActionResult> OtpPhone([FromBody] sendPhoneOtpRequestBody phoneNo)
         {
-            JsonFactory jsonFactory = new JsonFactory();
             JsonResponseOtp responseOtp = new JsonResponseOtp();
             JsonResponseFromKerry resp = new JsonResponseFromKerry();
             if (checkAuthAPIKey() == false)
@@ -126,7 +125,6 @@ namespace AuthSA.Controllers
         {
             JsonResponseOtpPhoneVerification responseOtp = new JsonResponseOtpPhoneVerification();
             OtpVerificationJsonResponseKerry resp = new OtpVerificationJsonResponseKerry();
-            JsonFactory jsonFactory = new JsonFactory();
             if (checkAuthAPIKey() == false)
             {
                 return StatusCode(401, jsonFactory.generateBadJson("There was an error"));
@@ -152,7 +150,6 @@ namespace AuthSA.Controllers
         public async Task<IActionResult> VerifyEmailOtp([FromBody] OtpEmailVerificationRequestBody requestBody)
         {
             JsonResponseOtpEmailVerification response = new JsonResponseOtpEmailVerification();
-            JsonFactory jsonFactory = new JsonFactory();
 
             if (checkAuthAPIKey() == false)
             {
@@ -179,7 +176,6 @@ namespace AuthSA.Controllers
         [HttpPost("/auth/check-user-exist")]
         public IActionResult CheckIfUserExists([FromBody] checkUserExistsRequestBody userDetails)
         {
-            JsonFactory jsonFactory = new JsonFactory();
 
             if (checkAuthAPIKey() == false)
             {

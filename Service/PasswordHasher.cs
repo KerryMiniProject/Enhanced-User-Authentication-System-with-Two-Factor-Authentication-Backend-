@@ -1,6 +1,7 @@
 ﻿namespace AuthSA.Util
 {
     using AuthSA.Model;
+    using AuthSA.Service.Database;
     using System;
     using System.Security.Cryptography;
 

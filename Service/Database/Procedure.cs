@@ -1,8 +1,9 @@
 ﻿using AuthSA.Model;
+using AuthSA.Util;
 using System.Data;
 using System.Data.SqlClient;
 
-namespace AuthSA.Util
+namespace AuthSA.Service.Database
 {
     public class Procedure
     {
@@ -55,8 +56,8 @@ namespace AuthSA.Util
 
             SqlCommand ifExists = new SqlCommand("EXEC dbo.CheckIfUserExists  @email, @phoneNum", db.Connection);
 
-            ifExists.Parameters.AddWithValue("@email", (object) Email ?? DBNull.Value);
-            ifExists.Parameters.AddWithValue("@phoneNum", (object)  PhoneNo ?? DBNull.Value);
+            ifExists.Parameters.AddWithValue("@email", (object)Email ?? DBNull.Value);
+            ifExists.Parameters.AddWithValue("@phoneNum", (object)PhoneNo ?? DBNull.Value);
 
             if (Email != null && !util.IsValidEmail(Email))
             {
@@ -68,7 +69,7 @@ namespace AuthSA.Util
             {
                 db.closeConnection();
                 throw new Exception();
-                
+
             }
 
             SqlDataReader readerLabelDetails = ifExists.ExecuteReader();
