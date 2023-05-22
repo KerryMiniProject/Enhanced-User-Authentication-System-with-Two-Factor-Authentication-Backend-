@@ -24,7 +24,7 @@ namespace AuthSA.Controllers
 
 
         [HttpPost("/auth/send-otp-to-email")]
-        public IActionResult OtpEmail([FromBody] User user)
+        public IActionResult OtpEmail([FromBody] sendEmailOtpRequestBody emailRequest)
         {
             db.startConnection();
             db.openConnection();
@@ -32,9 +32,9 @@ namespace AuthSA.Controllers
 
             try
             {
-                string guid = db.sendOTPEmail(user);
+                string guid = otpProvider.sendOTPEmail(emailRequest.Email);
                 db.closeConnection();
-                return Ok(jsonFactory.generateResponseOtpEmail(user, guid));
+                return Ok(jsonFactory.generateResponseOtpEmail(emailRequest, guid));
 
             }
             catch (Exception)
@@ -54,7 +54,7 @@ namespace AuthSA.Controllers
         //}
 
         [HttpPost("/auth/send-otp-to-phone")]
-        public async Task<IActionResult> OtpPhone([FromBody]User user)
+        public async Task<IActionResult> OtpPhone([FromBody] sendPhoneOtpRequestBody phoneNo)
         {
             JsonFactory jsonFactory = new JsonFactory();
             JsonResponseOtp responseOtp = new JsonResponseOtp();
@@ -62,10 +62,10 @@ namespace AuthSA.Controllers
 
             try
             {
-                decimal phone = Convert.ToDecimal(user.PhoneNo);
-                if(user.PhoneNo.Length == 10)
+                decimal phone = Convert.ToDecimal(phoneNo.PhoneNo);
+                if(phoneNo.PhoneNo.Length == 10)
                 {
-                    resp = await otpProvider.SendOtpToPhoneHelper(user.PhoneNo);
+                    resp = await otpProvider.SendOtpToPhoneHelper(phoneNo.PhoneNo);
                     responseOtp = jsonFactory.generateResponseOtpPhone(resp);
                     return Ok(responseOtp);
                 }
@@ -102,7 +102,7 @@ namespace AuthSA.Controllers
 
 
         [HttpPost("/auth/check-user-exist")]
-        public IActionResult CheckIfUserExists([FromBody] User user)
+        public IActionResult CheckIfUserExists([FromBody] checkUserExistsRequestBody userDetails)
         {
             JsonFactory jsonFactory = new JsonFactory();
             db.startConnection();
@@ -111,7 +111,7 @@ namespace AuthSA.Controllers
             try
             {
                 //check if user exists in db
-                bool ifUserExists = procedure.executeProcedureCheckIfUserExists(user);
+                bool ifUserExists = procedure.executeProcedureCheckIfUserExists(userDetails);
                 db.closeConnection();
                 return Ok(jsonFactory.generateResponseUserExist(ifUserExists));             
             }

@@ -26,17 +26,16 @@ namespace AuthSA.Model
 
     }
 
-
     public class JsonFactory
     {
-        public JsonResponseOtpEmail generateResponseOtpEmail(User user, string guid)
+        public JsonResponseOtpEmail generateResponseOtpEmail(sendEmailOtpRequestBody email, string guid)
         {
             JsonResponseOtpEmail response = new JsonResponseOtpEmail();
             response.error = false;
             response.code = "200";
             response.description = "Successful";
             response.display = "Otp has been sent";
-            response.email = user.Email;
+            response.email = email.Email;
             response.Token = guid;
             return response;
         }
@@ -171,12 +170,7 @@ namespace AuthSA.Model
         public bool? IsValidOtp { get; set; }
     }
 
-    public class OtpVerificationRequestBody
-    {
-        public string? Token { get; set; }
-        public string? Reference { get; set; }
-        public string? Otp { get; set; }
-    }
+ 
 
 
 }
