@@ -14,6 +14,7 @@ namespace AuthSA.Util
     {
 
         Database db = new Database();
+        Procedure procedure = new Procedure();
        public async Task<JsonResponseFromKerry> SendOtpToPhoneHelper(string phoneNumber)
         {
             // Create HttpClient instance
@@ -44,7 +45,7 @@ namespace AuthSA.Util
         }
 
 
-        public async Task<OtpVerificationJsonResponseKerry> VerifyOTP(OtpVerificationRequestBody otpVerificationRequestBody)
+        public async Task<OtpVerificationJsonResponseKerry> VerifyOTP(OtpPhoneVerificationRequestBody otpVerificationRequestBody)
         {
             var httpClient = new HttpClient();
 
@@ -91,9 +92,13 @@ namespace AuthSA.Util
 
         }
 
-        public bool verifyOTP(string UserOtp, string ServerOtp)
+        public bool verifyOTP(string guid, string otp, string email)
         {
-            return UserOtp.Equals(ServerOtp);
+            db.startConnection();
+            db.openConnection();
+            bool result = procedure.executeProcedureVerifyEmailOtp(guid,otp,email);
+            db.closeConnection();
+            return result;
         }
 
 

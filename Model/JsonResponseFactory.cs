@@ -93,9 +93,9 @@ namespace AuthSA.Model
             return jsonResponse;
         }
 
-        public JsonResponseOtpVerification generateSuccessfulOtpPhoneVerificicationResponse(OtpVerificationJsonResponseKerry respKerry)
+        public JsonResponseOtpPhoneVerification generateSuccessfulOtpPhoneVerificicationResponse(OtpVerificationJsonResponseKerry respKerry)
         {
-            JsonResponseOtpVerification jsonResponse = new JsonResponseOtpVerification();
+            JsonResponseOtpPhoneVerification jsonResponse = new JsonResponseOtpPhoneVerification();
             jsonResponse.error = false;
             jsonResponse.code = "200";
             jsonResponse.description = "OK";
@@ -105,6 +105,21 @@ namespace AuthSA.Model
             jsonResponse.otp = respKerry.Otp;
             jsonResponse.recipient = respKerry.Recipient;
             jsonResponse.isValidOtp = respKerry.IsValidOtp;
+            return jsonResponse;
+        }
+
+
+        public JsonResponseOtpEmailVerification generateSuccessfulOtpEmailVerificicationResponse(OtpEmailVerificationRequestBody requestBody, bool ifExists)
+        {
+            JsonResponseOtpEmailVerification jsonResponse = new JsonResponseOtpEmailVerification();
+            jsonResponse.error = false;
+            jsonResponse.code = "200";
+            jsonResponse.description = "OK";
+            jsonResponse.display = (ifExists) ? "Successfully": "Verification Failed";
+            jsonResponse.token = requestBody.Token;
+            jsonResponse.recipient = requestBody.Email;
+            jsonResponse.isValidOtp = ifExists;
+
             return jsonResponse;
         }
 
@@ -148,7 +163,7 @@ namespace AuthSA.Model
 
     }
 
-    public class JsonResponseOtpVerification
+    public class JsonResponseOtpPhoneVerification
     {
         public bool? error { get; set; }
         public string? code { get; set; }
@@ -157,6 +172,17 @@ namespace AuthSA.Model
         public string? token { get; set; }
         public string? reference { get; set; }
         public string? otp { get; set; }
+        public string? recipient { get; set; }
+        public bool? isValidOtp { get; set; }
+    }
+
+    public class JsonResponseOtpEmailVerification
+    {
+        public bool? error { get; set; }
+        public string? code { get; set; }
+        public string? description { get; set; }
+        public string? display { get; set; }
+        public string? token { get; set; }
         public string? recipient { get; set; }
         public bool? isValidOtp { get; set; }
     }
