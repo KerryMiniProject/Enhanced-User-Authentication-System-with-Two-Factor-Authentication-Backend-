@@ -43,7 +43,7 @@ namespace AuthSA.Util
         {
             db.startConnection();
             db.openConnection();
-            SqlCommand getLabelDetails = new SqlCommand($@"INSERT INTO PasswordTable(Email, HashPassword, Salt) values (N'{user.Email.ToLower()}', N'{user.Password}',N'{salt}')", db.Connection);
+            SqlCommand getLabelDetails = new SqlCommand($@"INSERT INTO Password(Email, Phone_No, CurrentPassword, Salt) values (N'{user.Email.ToLower()}', N'{user.PhoneNo}',N'{user.Password}', N'{salt}')", db.Connection);
             getLabelDetails.ExecuteNonQuery();
             db.closeConnection();
         }
@@ -72,30 +72,30 @@ namespace AuthSA.Util
         {
             db.startConnection();
             db.openConnection();
-            SqlCommand getLabelDetails = new SqlCommand($@"INSERT INTO UserTable(FirstName, LastName, Email, PhoneNo) values (N'{user.FirstName}', N'{user.LastName}',N'{user.Email.ToLower()}', N'{user.PhoneNo}')", db.Connection);
+            SqlCommand getLabelDetails = new SqlCommand($@"INSERT INTO UserTable(First_Name, Last_Name, Email, Phone_No) values (N'{user.FirstName}', N'{user.LastName}',N'{user.Email.ToLower()}', N'{user.PhoneNo}')", db.Connection);
             getLabelDetails.ExecuteNonQuery();
             db.closeConnection();
         }
 
-        public bool executeProcedureCheckIfUserExists(checkUserExistsRequestBody userDetail)
+        public bool executeProcedureCheckIfUserExists(string PhoneNo = null, string Email = null)
         {
             db.startConnection();
             db.openConnection();
-            if (string.IsNullOrEmpty(userDetail.Email) && string.IsNullOrEmpty(userDetail.PhoneNo))
+            if (string.IsNullOrEmpty(Email) && string.IsNullOrEmpty(PhoneNo))
                 throw new ArgumentException("Both Email and PhoneNo can't be null.");
 
             SqlCommand ifExists = new SqlCommand("EXEC dbo.CheckIfUserExists  @email, @phoneNum", db.Connection);
 
-            ifExists.Parameters.AddWithValue("@email", (object)userDetail.Email ?? DBNull.Value);
-            ifExists.Parameters.AddWithValue("@phoneNum", (object)userDetail.PhoneNo ?? DBNull.Value);
+            ifExists.Parameters.AddWithValue("@email", (object) Email ?? DBNull.Value);
+            ifExists.Parameters.AddWithValue("@phoneNum", (object)  PhoneNo ?? DBNull.Value);
 
-            if (userDetail.Email != null && !util.IsValidEmail(userDetail.Email))
+            if (Email != null && !util.IsValidEmail(Email))
             {
                 db.closeConnection();
                 throw new Exception();
             }
 
-            if (userDetail.PhoneNo != null && !util.IsValidPhoneNumber(userDetail.PhoneNo))
+            if (PhoneNo != null && !util.IsValidPhoneNumber(PhoneNo))
             {
                 db.closeConnection();
                 throw new Exception();

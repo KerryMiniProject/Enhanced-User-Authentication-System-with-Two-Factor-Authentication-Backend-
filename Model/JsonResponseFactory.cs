@@ -15,6 +15,14 @@ namespace AuthSA.Model
         public string? display { get; set; }
     }
 
+    public class JsonResponseSignUp
+    {
+        public bool? error { get; set; }
+        public string? code { get; set; }
+        public string? description { get; set; }
+        public string? display { get; set; }
+    }
+
     public class JsonResponseOtpEmail
     {
         public bool? error { get; set; }
@@ -28,6 +36,17 @@ namespace AuthSA.Model
 
     public class JsonFactory
     {
+
+        public JsonResponseSignUp? generateResponseSignUp()
+        {
+            JsonResponseSignUp response = new JsonResponseSignUp();
+            response.error = false;
+            response.code = "200";
+            response.description = "Successful";
+            response.display = "Sign up successfull";
+            return response;
+
+        }
         public JsonResponseOtpEmail generateResponseOtpEmail(sendEmailOtpRequestBody email, string guid)
         {
             JsonResponseOtpEmail response = new JsonResponseOtpEmail();

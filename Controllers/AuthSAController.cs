@@ -13,13 +13,39 @@ namespace AuthSA.Controllers
         OTPProvider otpProvider = new OTPProvider();
         Database db = new Database();
         Procedure procedure = new Procedure();
-        //Auth auth = new Auth();
 
-        //[HttpPost("/auth/sign-up")]
-        //public IActionResult SignUp([FromBody] User user)
-        //{
-        //    return Ok(auth.SignUp(user));
-        //}
+        [HttpPost("/auth/sign-up")]
+        public IActionResult SignUp([FromBody] User user)
+        {
+            JsonFactory jsonFactory = new JsonFactory();
+            db.startConnection();
+            db.openConnection();
+            if (!procedure.executeProcedureCheckIfUserExists(Email: user.Email) || !procedure.executeProcedureCheckIfUserExists(PhoneNo: user.PhoneNo))
+            {
+                try
+                {
+                    string hashed = passwordHasher.HashPassword(user);
+                    user.Password = hashed;
+                    string? salt = passwordHasher.GetSalt(user);
+                    procedure.insertIntoPasswordTable(user, salt);
+                    procedure.insertIntoUserTable(user);
+                    db.closeConnection();
+                    return Ok(jsonFactory.generateResponseSignUp());
+                }
+                catch (Exception)
+                {
+                    return Ok(jsonFactory.generateBadJson("There was an error"));
+                }
+            }
+            else
+            {
+                return Ok(jsonFactory.generateBadJson("User already exists"));
+            }
+                
+            
+
+
+        }
 
 
 
@@ -133,7 +159,7 @@ namespace AuthSA.Controllers
             try
             {
                 //check if user exists in db
-                bool ifUserExists = procedure.executeProcedureCheckIfUserExists(userDetails);
+                bool ifUserExists = procedure.executeProcedureCheckIfUserExists(userDetails.PhoneNo, userDetails.Email);
                 db.closeConnection();
                 return Ok(jsonFactory.generateResponseUserExist(ifUserExists));             
             }

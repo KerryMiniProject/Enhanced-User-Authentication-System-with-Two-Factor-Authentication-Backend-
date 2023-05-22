@@ -11,19 +11,12 @@
 //            JsonResponse response = new JsonResponse();
 //            db.startConnection();
 //            db.openConnection();
+//            string hashed = passwordHasher.HashPassword(user);
+//            user.Password = hashed;
+//            string? salt = passwordHasher.GetSalt(user);
+//            db.insertIntoPasswordTable(user, salt);
+//            db.insertIntoUserTable(user);
 
-
-//            //verify otp
-//            bool ifExists = db.executeProcedureVerifyOtp(user.OtpVerify.Guid, user.OtpVerify.Otp, user.PhoneNo);
-//            if (ifExists)
-//            {
-//                string hashed = passwordHasher.HashPassword(user);
-//                user.Password = hashed;
-//                string? salt = passwordHasher.GetSalt(user);
-//                db.insertIntoPasswordTable(user, salt);
-//                db.insertIntoUserTable(user);
-//                return response.success();
-//            }
 //            db.closeConnection();
 //            return response.badAuth();
 //        }

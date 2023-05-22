@@ -12,7 +12,7 @@ namespace AuthSA.Util
 {
     public class OTPProvider 
     {
-
+        Utility util = new Utility();
         Database db = new Database();
         Procedure procedure = new Procedure();
        public async Task<JsonResponseFromKerry> SendOtpToPhoneHelper(string phoneNumber)
@@ -71,26 +71,6 @@ namespace AuthSA.Util
             }
         }
 
-        public string? sendOTP(string phoneNumber)
-        {
-            string accountSid = "AC5c20008228cdd9647c8389720321552f";
-            string authToken = "e7ad784b49b4d412449ca1b339e164f4";
-            TwilioClient.Init(accountSid, authToken);
-            Random random = new Random();
-            int otp = random.Next(1000, 9999);
-            string otpString = otp.ToString(); 
-            string message = $"Your OTP is: {otpString}";
-
-
-            var smsMessage = MessageResource.Create(
-                body: message,
-                from: new Twilio.Types.PhoneNumber("+12545406624"),
-                to: new Twilio.Types.PhoneNumber(phoneNumber)
-            );
-            return otpString;
-
-
-        }
 
         public bool verifyOTP(string guid, string otp, string email)
         {
@@ -105,6 +85,11 @@ namespace AuthSA.Util
 
         public string sendOTPEmail(string email)
         {
+            if(!util.IsValidEmail(email))
+            {
+                throw new Exception();
+            }
+
             Guid g = Guid.NewGuid();
             string guid = g.ToString();
             db.startConnection();
