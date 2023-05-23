@@ -11,7 +11,7 @@
         Procedure procedure = new Procedure();
         public string HashPassword(User user)
         {
-            string? salt = GetSalt(user);
+            string? salt = GetSalt(user.Email, user.PhoneNo);
 
             // Convert the salt string back into a byte array
             byte[] saltBytes = Convert.FromBase64String(salt);
@@ -30,13 +30,13 @@
             return hashedPassword;
         }
 
-        public string? GetSalt(User user)
+        public string? GetSalt(string email=null, string phoneNo = null)
         {
             db.startConnection();
             db.openConnection();
 
             // Check if user exists, if exists get the salt from db
-            string? salt = procedure.executeProcedureGetSalt(user);
+            string? salt = procedure.executeProcedureGetSalt(email, phoneNo);
 
             // If user does not exist then generate random salt
             if (string.IsNullOrEmpty(salt))

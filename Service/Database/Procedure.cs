@@ -18,14 +18,32 @@ namespace AuthSA.Service.Database
             db.closeConnection();
         }
 
-        public string? executeProcedureGetSalt(User user)
+        public string? executeProcedureGetSalt(string email = null, string phoneNo = null)
         {
             db.startConnection();
             db.openConnection();
-            SqlCommand ifExists = new SqlCommand("EXEC dbo.GetSalt  @Email", db.Connection);
-            SqlParameter email = new SqlParameter("@Email", SqlDbType.NVarChar);
-            ifExists.Parameters.Add(email);
-            ifExists.Parameters["@email"].Value = user.Email;
+            if (string.IsNullOrEmpty(email) && string.IsNullOrEmpty(phoneNo))
+                throw new ArgumentException("Both Email and PhoneNo can't be null.");
+
+            SqlCommand ifExists = new SqlCommand("EXEC dbo.GetSalt  @Email, @PhoneNo", db.Connection);
+
+            ifExists.Parameters.AddWithValue("@Email", (object)email ?? DBNull.Value);
+            ifExists.Parameters.AddWithValue("@PhoneNo", (object)phoneNo ?? DBNull.Value);
+
+            if (email != null && !util.IsValidEmail(email))
+            {
+                db.closeConnection();
+                throw new Exception();
+            }
+
+            if (phoneNo != null && !util.IsValidPhoneNumber(phoneNo))
+            {
+                db.closeConnection();
+                throw new Exception();
+
+            }
+
+
             ifExists.ExecuteNonQuery();
             SqlDataReader readerLabelDetails = ifExists.ExecuteReader();
             string salt = "";
@@ -82,6 +100,76 @@ namespace AuthSA.Service.Database
             db.closeConnection();
             bool resultBool = Convert.ToBoolean(result.ToLower());
             return resultBool;
+        }
+
+        public bool executeProcedureCheckPasswordisOld(ResetPasswordRequestBody resetPasswordRequestBody)
+        {
+            db.startConnection();
+            db.openConnection();
+            if (string.IsNullOrEmpty(resetPasswordRequestBody.Email) && string.IsNullOrEmpty(resetPasswordRequestBody.PhoneNo))
+                throw new ArgumentException("Both Email and PhoneNo can't be null.");
+
+            SqlCommand ifExists = new SqlCommand("EXEC dbo.CheckNewPasswordMatch  @Email, @PhoneNo, @NewPassword", db.Connection);
+
+
+
+            ifExists.Parameters.AddWithValue("@Email", (object)resetPasswordRequestBody.Email ?? DBNull.Value);
+            ifExists.Parameters.AddWithValue("@PhoneNo", (object)resetPasswordRequestBody.PhoneNo ?? DBNull.Value);
+            ifExists.Parameters.AddWithValue("@NewPassword", (object)resetPasswordRequestBody.Password);
+
+            if (resetPasswordRequestBody.Email != null && !util.IsValidEmail(resetPasswordRequestBody.Email))
+            {
+                db.closeConnection();
+                throw new Exception();
+            }
+
+            if (resetPasswordRequestBody.PhoneNo != null && !util.IsValidPhoneNumber(resetPasswordRequestBody.PhoneNo))
+            {
+                db.closeConnection();
+                throw new Exception();
+
+            }
+
+            SqlDataReader readerLabelDetails = ifExists.ExecuteReader();
+            string result = "";
+            if (readerLabelDetails.Read())
+            {
+                result = readerLabelDetails[0].ToString();
+            }
+            readerLabelDetails.Close();
+            db.closeConnection();
+            bool resultBool = Convert.ToBoolean(result.ToLower());
+            return resultBool;
+        }
+
+
+
+        public void executeProcedureResetPassword(string password, string PhoneNo = null, string Email = null)
+        {
+            db.startConnection();
+            db.openConnection();
+            if (string.IsNullOrEmpty(Email) && string.IsNullOrEmpty(PhoneNo))
+                throw new ArgumentException("Both Email and PhoneNo can't be null.");
+
+            SqlCommand ifExists = new SqlCommand("EXEC dbo.UpdatePassword  @Email, @PhoneNo, @NewPassword", db.Connection);
+
+            ifExists.Parameters.AddWithValue("@Email", (object)Email ?? DBNull.Value);
+            ifExists.Parameters.AddWithValue("@PhoneNo", (object)PhoneNo ?? DBNull.Value);
+            ifExists.Parameters.AddWithValue("@NewPassword", (object)password);
+
+            if (Email != null && !util.IsValidEmail(Email))
+            {
+                db.closeConnection();
+                throw new Exception();
+            }
+
+            if (PhoneNo != null && !util.IsValidPhoneNumber(PhoneNo))
+            {
+                db.closeConnection();
+                throw new Exception();
+
+            }
+            SqlDataReader readerLabelDetails = ifExists.ExecuteReader();
         }
 
 

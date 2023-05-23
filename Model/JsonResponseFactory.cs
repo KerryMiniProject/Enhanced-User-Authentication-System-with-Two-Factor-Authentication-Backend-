@@ -2,37 +2,17 @@
 
 namespace AuthSA.Model
 {
-
-    public class JsonResponseIfUserExists
-    {
-        public bool? error { get; set; }
-        public bool? ifExists { get; set; }
-        public string? code { get; set; }
-        public string? description { get; set; }
-        public string? display { get; set; }
-    }
-
-    public class JsonResponseSignUp
-    {
-        public bool? error { get; set; }
-        public string? code { get; set; }
-        public string? description { get; set; }
-        public string? display { get; set; }
-    }
-
-    public class JsonResponseOtpEmail
-    {
-        public bool? error { get; set; }
-        public string? code { get; set; }
-        public string? description { get; set; }
-        public string? display { get; set; }
-        public string? email { get; set; }
-        public string? Token { get; set; }
-
-    }
-
     public class JsonFactory
     {
+        public JsonResponseResetPassword? generateResponseResetPassword(string message = null, string code=null)
+        {
+            JsonResponseResetPassword response = new JsonResponseResetPassword();
+            response.error = false;
+            response.code = (code != null) ? code: "200";
+            response.description = (code != null) ? "Failed":"Successful";
+            response.display = (message != null) ? message : "Reset Password Successful";
+            return response;
+        }
 
         public JsonResponseSignUp? generateResponseSignUp()
         {
@@ -131,6 +111,42 @@ namespace AuthSA.Model
 
     }
 
+
+    public class JsonResponseIfUserExists
+    {
+        public bool? error { get; set; }
+        public bool? ifExists { get; set; }
+        public string? code { get; set; }
+        public string? description { get; set; }
+        public string? display { get; set; }
+    }
+
+    public class JsonResponseSignUp
+    {
+        public bool? error { get; set; }
+        public string? code { get; set; }
+        public string? description { get; set; }
+        public string? display { get; set; }
+    }
+
+    public class JsonResponseOtpEmail
+    {
+        public bool? error { get; set; }
+        public string? code { get; set; }
+        public string? description { get; set; }
+        public string? display { get; set; }
+        public string? email { get; set; }
+        public string? Token { get; set; }
+
+    }
+
+    public class JsonResponseResetPassword
+    {
+        public bool? error { get; set; }
+        public string? code { get; set; }
+        public string? description { get; set; }
+        public string? display { get; set; }
+    }
 
     public class JsonResponseFactory
     {
