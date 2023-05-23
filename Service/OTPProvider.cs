@@ -12,7 +12,6 @@ namespace AuthSA.Util
     {
         Utility util = new Utility();
         Database db = new Database();
-        Procedure procedure = new Procedure();
        public async Task<JsonResponseFromKerry> SendOtpToPhoneHelper(string phoneNumber)
         {
             // Create HttpClient instance

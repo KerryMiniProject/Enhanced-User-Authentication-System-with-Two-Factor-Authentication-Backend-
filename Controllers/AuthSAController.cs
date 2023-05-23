@@ -46,7 +46,7 @@ namespace AuthSA.Controllers
                 {
                     string hashed = passwordHasher.HashPassword(user);
                     user.Password = hashed;
-                    string? salt = passwordHasher.GetSalt(user);
+                    string? salt = passwordHasher.GetSalt(user.Email, user.PhoneNo);
                     procedure.insertIntoPasswordTable(user, salt);
                     procedure.insertIntoUserTable(user);
                     db.closeConnection();
@@ -196,6 +196,46 @@ namespace AuthSA.Controllers
                 return StatusCode(401, jsonFactory.generateBadJson("There is an error with the response body"));
             }
            
+        }
+
+
+        [HttpPost("/auth/reset-password")]
+        public IActionResult ResetPassword([FromBody] ResetPasswordRequestBody requestBody)
+        {
+
+            if (checkAuthAPIKey() == false)
+            {
+                return StatusCode(401, jsonFactory.generateBadJson("Unauthorized"));
+            }
+            db.startConnection();
+            db.openConnection();
+
+            try
+            {
+
+                //check if user exists in db
+                bool ifExists = procedure.executeProcedureCheckIfUserExists(requestBody.PhoneNo, requestBody.Email);
+                if (!ifExists)
+                {
+                    return StatusCode(401,jsonFactory.generateResponseResetPassword("The user does not exist","401"));
+                }
+                string hashed = passwordHasher.HashPassword(new User() { Email = requestBody.Email, PhoneNo = requestBody.PhoneNo, Password = requestBody.Password });
+                requestBody.Password = hashed;
+                bool passwordIsOld = procedure.executeProcedureCheckPasswordisOld(requestBody);
+                if (passwordIsOld)
+                {
+
+                    return StatusCode(401, jsonFactory.generateResponseResetPassword("This password is either old or current"));
+                }
+                procedure.executeProcedureResetPassword(hashed, requestBody.PhoneNo, requestBody.Email);
+                db.closeConnection();
+                return Ok(jsonFactory.generateResponseResetPassword());
+            }
+            catch (Exception)
+            {
+                return StatusCode(401, jsonFactory.generateBadJson("There is an error with the response body"));
+            }
+
         }
 
 
