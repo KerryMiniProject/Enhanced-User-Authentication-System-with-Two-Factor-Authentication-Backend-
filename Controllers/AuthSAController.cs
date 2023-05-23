@@ -32,14 +32,14 @@ namespace AuthSA.Controllers
         {
             if(checkAuthAPIKey() == false)
             {
-                return StatusCode(401, jsonFactory.generateBadJson("There was an error"));
+                return StatusCode(401, jsonFactory.generateBadJson("Unauthorized"));
             }
             
             db.startConnection();
             db.openConnection();
             if(procedure.executeProcedureCheckIfUserExists(PhoneNo: user.PhoneNo) || procedure.executeProcedureCheckIfUserExists(Email: user.Email))
             {
-                return StatusCode(401, jsonFactory.generateBadJson("There was an error"));
+                return StatusCode(401, jsonFactory.generateBadJson("User already exists"));
             }
 
                 try
@@ -66,7 +66,7 @@ namespace AuthSA.Controllers
 
             if (checkAuthAPIKey() == false)
             {
-                return StatusCode(401, jsonFactory.generateBadJson("There was an error"));
+                return StatusCode(401, jsonFactory.generateBadJson("Unauthorized"));
             }
             db.startConnection();
             db.openConnection();
@@ -101,7 +101,7 @@ namespace AuthSA.Controllers
             JsonResponseFromKerry resp = new JsonResponseFromKerry();
             if (checkAuthAPIKey() == false)
             {
-                return StatusCode(401, jsonFactory.generateBadJson("There was an error"));
+                return StatusCode(401, jsonFactory.generateBadJson("Unauthorized"));
             }
             try
             {
@@ -112,7 +112,7 @@ namespace AuthSA.Controllers
                     responseOtp = jsonFactory.generateResponseOtpPhone(resp);
                     return Ok(responseOtp);
                 }
-                return StatusCode(401, jsonFactory.generateBadJson("There was a problem with the response body"));
+                return StatusCode(401, jsonFactory.generateBadJson("Format is wrong"));
             }
             catch (Exception)
             {
@@ -127,7 +127,7 @@ namespace AuthSA.Controllers
             OtpVerificationJsonResponseKerry resp = new OtpVerificationJsonResponseKerry();
             if (checkAuthAPIKey() == false)
             {
-                return StatusCode(401, jsonFactory.generateBadJson("There was an error"));
+                return StatusCode(401, jsonFactory.generateBadJson("Unauthorized"));
             }
             db.startConnection();
             db.openConnection();
@@ -153,7 +153,7 @@ namespace AuthSA.Controllers
 
             if (checkAuthAPIKey() == false)
             {
-                return StatusCode(401, jsonFactory.generateBadJson("There was an error"));
+                return StatusCode(401, jsonFactory.generateBadJson("Unauthorized"));
             }
             db.startConnection();
             db.openConnection();
@@ -179,7 +179,7 @@ namespace AuthSA.Controllers
 
             if (checkAuthAPIKey() == false)
             {
-                return StatusCode(401, jsonFactory.generateBadJson("There was an error"));
+                return StatusCode(401, jsonFactory.generateBadJson("Unauthorized"));
             }   
             db.startConnection();
             db.openConnection();

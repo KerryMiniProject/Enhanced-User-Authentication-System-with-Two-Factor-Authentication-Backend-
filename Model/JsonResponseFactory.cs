@@ -40,7 +40,7 @@ namespace AuthSA.Model
             response.error = false;
             response.code = "200";
             response.description = "Successful";
-            response.display = "Sign up successfull";
+            response.display = "Sign up successful";
             return response;
 
         }
