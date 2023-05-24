@@ -15,21 +15,22 @@
             _secretKey = secretKey;
         }
 
-        public string GenerateAccessToken(int userId)
+        public string GenerateAccessToken(string userId)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(_secretKey);
             var tokenDescriptor = new SecurityTokenDescriptor
             {
-                Subject = new ClaimsIdentity(new[] { new Claim("user_id", userId.ToString()) }),
+                Subject = new ClaimsIdentity(new[] { new Claim("user_id", userId) }),
                 Expires = DateTime.UtcNow.AddMinutes(15),  // Expiration time for the access token
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
             var token = tokenHandler.CreateToken(tokenDescriptor);
+            //string accessToken = tokenHandler.WriteToken(token);
             return tokenHandler.WriteToken(token);
         }
 
-        public string GenerateRefreshToken(int userId)
+        public string GenerateRefreshToken(string userId = null)
         {
             var refreshToken = Guid.NewGuid().ToString();
             // You may want to store the refresh token in a secure data store or database

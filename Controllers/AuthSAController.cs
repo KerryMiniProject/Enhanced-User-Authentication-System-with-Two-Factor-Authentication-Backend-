@@ -1,4 +1,5 @@
 ﻿using AuthSA.Model;
+using AuthSA.Service;
 using AuthSA.Service.Database;
 using AuthSA.Util;
 using Microsoft.AspNetCore.Mvc;
@@ -10,6 +11,8 @@ namespace AuthSA.Controllers
 {
     public class AuthSAController : Controller
     {
+        Token token = new Token();
+        TokenService tokenService = new TokenService("abcdefghijklmnopqrstuvwxyz");
         PasswordHasher passwordHasher = new PasswordHasher();
         OTPProvider otpProvider = new OTPProvider();
         Database db = new Database();
@@ -232,6 +235,8 @@ namespace AuthSA.Controllers
         [HttpPost("/auth/login")]
         public IActionResult Login([FromBody] ResetPasswordRequestBody requestBody)
         {
+            db.startConnection();
+            db.openConnection();
             if (checkAuthAPIKey() == false)
             {
                 return StatusCode(401, jsonFactory.generateBadJson("Unauthorized"));
@@ -246,13 +251,20 @@ namespace AuthSA.Controllers
                 bool ifExists = procedure.executeProcedureCheckIfUserExists(requestBody.PhoneNo, requestBody.Email);
                 if (!ifExists)
                 {
+                    db.closeConnection();
                     return StatusCode(401, jsonFactory.generateResponseResetPassword("The user does not exist", "401"));
                 }
 
                 bool isCorrect = passwordHasher.VerifyPassword(requestBody.Password, requestBody.Email, requestBody.PhoneNo);
                 if (isCorrect)
                 {
-                    return Ok(isCorrect);
+                    //Todo: Fix the generation of tokens. After generate, store the tokens, their expiry date, userId, and insert 1 in isLoggedIn
+                    string? userId = procedure.executeProcedureGetUserId(requestBody.Email, requestBody.PhoneNo);
+                    token.AccessToken = tokenService.GenerateAccessToken(userId);
+                    token.RefreshToken = tokenService.GenerateRefreshToken();
+                    procedure.executeProcedureInsertIntoUserStatus(userId, token.AccessToken, token.RefreshToken);
+
+                    return Ok(token);
                     //gen tokens
                 }
 

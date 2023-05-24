@@ -18,7 +18,19 @@ namespace AuthSA.Service.Database
             db.closeConnection();
         }
 
+        public void executeProcedureInsertIntoUserStatus(string userId, string accessToken, string refreshToken)
+        {
+            db.startConnection();
+            db.openConnection();
 
+            SqlCommand ifExists = new SqlCommand("EXEC dbo.InsertUserStatus  @UserId, @Access_Token, @Refresh_Token", db.Connection);
+
+            ifExists.Parameters.AddWithValue("@UserId", (object)userId);
+            ifExists.Parameters.AddWithValue("@Access_Token", (object)accessToken);
+            ifExists.Parameters.AddWithValue("@Refresh_Token", (object)refreshToken);
+            ifExists.ExecuteNonQuery();
+
+        }
         public string? executeProcedureGetSalt(string email = null, string phoneNo = null)
         {
             db.startConnection();
@@ -57,6 +69,44 @@ namespace AuthSA.Service.Database
             return salt;
         }
 
+
+        public string? executeProcedureGetUserId(string email = null, string phoneNo = null)
+        {
+            db.startConnection();
+            db.openConnection();
+            if (string.IsNullOrEmpty(email) && string.IsNullOrEmpty(phoneNo))
+                throw new ArgumentException("Both Email and PhoneNo can't be null.");
+
+            SqlCommand ifExists = new SqlCommand("EXEC dbo.GetUserId  @Email, @PhoneNo", db.Connection);
+
+            ifExists.Parameters.AddWithValue("@Email", (object)email ?? DBNull.Value);
+            ifExists.Parameters.AddWithValue("@PhoneNo", (object)phoneNo ?? DBNull.Value);
+
+            if (email != null && !util.IsValidEmail(email))
+            {
+                db.closeConnection();
+                throw new Exception();
+            }
+
+            if (phoneNo != null && !util.IsValidPhoneNumber(phoneNo))
+            {
+                db.closeConnection();
+                throw new Exception();
+
+            }
+
+
+            ifExists.ExecuteNonQuery();
+            SqlDataReader readerLabelDetails = ifExists.ExecuteReader();
+            string userId = "";
+            if (readerLabelDetails.Read())
+            {
+                userId = readerLabelDetails[0].ToString();
+            }
+            readerLabelDetails.Close();
+            db.closeConnection();
+            return userId;
+        }
         public string? executeProcedureGetPassword(string email = null, string phoneNo = null)
         {
             db.startConnection();
