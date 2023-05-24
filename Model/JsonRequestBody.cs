@@ -39,4 +39,10 @@
         public string? Password { get; set; }
 
     }
+
+    public class GenerateAccessTokenRequestBody
+    {
+        public string? RefreshToken { get; set; }
+
+    }
 }

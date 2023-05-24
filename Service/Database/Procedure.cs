@@ -29,6 +29,21 @@ namespace AuthSA.Service.Database
             ifExists.Parameters.AddWithValue("@Access_Token", (object)accessToken);
             ifExists.Parameters.AddWithValue("@Refresh_Token", (object)refreshToken);
             ifExists.ExecuteNonQuery();
+            db.closeConnection();
+
+        }
+
+        public void executeProcedureUpdateAccessToken(string refreshToken, string accessToken)
+        {
+            db.startConnection();
+            db.openConnection();
+
+            SqlCommand ifExists = new SqlCommand("EXEC dbo.UpdateAccessToken  @Refresh_Token, @Access_Token", db.Connection);
+            ifExists.Parameters.AddWithValue("@Refresh_Token", (object)refreshToken);
+            ifExists.Parameters.AddWithValue("@Access_Token", (object)accessToken);
+            ifExists.ExecuteNonQuery();
+            db.closeConnection() ;
+
 
         }
         public string? executeProcedureGetSalt(string email = null, string phoneNo = null)
@@ -96,6 +111,26 @@ namespace AuthSA.Service.Database
             }
 
 
+            ifExists.ExecuteNonQuery();
+            SqlDataReader readerLabelDetails = ifExists.ExecuteReader();
+            string userId = "";
+            if (readerLabelDetails.Read())
+            {
+                userId = readerLabelDetails[0].ToString();
+            }
+            readerLabelDetails.Close();
+            db.closeConnection();
+            return userId;
+        }
+
+        public string? executeProcedureGetUserIdByRefreshToken(string refreshToken)
+        {
+            db.startConnection();
+            db.openConnection();
+
+            SqlCommand ifExists = new SqlCommand("EXEC dbo.GetUserIdByRefreshToken  @RefreshToken", db.Connection);
+
+            ifExists.Parameters.AddWithValue("@RefreshToken ", (object)refreshToken);
             ifExists.ExecuteNonQuery();
             SqlDataReader readerLabelDetails = ifExists.ExecuteReader();
             string userId = "";
@@ -179,6 +214,41 @@ namespace AuthSA.Service.Database
 
             }
 
+            SqlDataReader readerLabelDetails = ifExists.ExecuteReader();
+            string result = "";
+            if (readerLabelDetails.Read())
+            {
+                result = readerLabelDetails[0].ToString();
+            }
+            readerLabelDetails.Close();
+            db.closeConnection();
+            bool resultBool = Convert.ToBoolean(result.ToLower());
+            return resultBool;
+        }
+
+        public void executeProcedureDeleteSession(string refreshToken=null, string accessToken=null)
+        {
+            db.startConnection();
+            db.openConnection();
+
+            SqlCommand ifExists = new SqlCommand("EXEC dbo.DeleteUserSessionByTokens  @RefreshToken, @AccessToken", db.Connection);
+
+            ifExists.Parameters.AddWithValue("@RefreshToken", (object)refreshToken ?? DBNull.Value);
+            ifExists.Parameters.AddWithValue("@AccessToken", (object)accessToken ?? DBNull.Value);
+            ifExists.ExecuteNonQuery();
+
+            db.closeConnection();
+
+        }
+
+        public bool executeProcedureCheckExpiryRefreshToken(string refreshToken)
+        {
+            db.startConnection();
+            db.openConnection();
+
+            SqlCommand ifExists = new SqlCommand("EXEC dbo.CheckRefreshTokenExpiry  @Refresh_Token", db.Connection);
+
+            ifExists.Parameters.AddWithValue("@Refresh_Token", (object)refreshToken);
             SqlDataReader readerLabelDetails = ifExists.ExecuteReader();
             string result = "";
             if (readerLabelDetails.Read())
