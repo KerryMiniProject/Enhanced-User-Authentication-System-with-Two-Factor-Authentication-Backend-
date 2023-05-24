@@ -45,9 +45,6 @@ namespace AuthSA.Controllers
                 try
                 {
                     string hashed = passwordHasher.HashPassword(user);
-                    user.Password = hashed;
-                    string? salt = passwordHasher.GetSalt(user.Email, user.PhoneNo);
-                    procedure.insertIntoPasswordTable(user, salt);
                     procedure.insertIntoUserTable(user);
                     db.closeConnection();
                     return Ok(jsonFactory.generateResponseSignUp());
@@ -86,13 +83,6 @@ namespace AuthSA.Controllers
            
         }
 
-        //[HttpPost("/auth/verify-password")]
-        //public IActionResult Salt(string password, string hash)
-        //{
-
-        //    bool isCorrect = passwordHasher.VerifyPassword(password, hash);
-        //    return Ok(isCorrect);
-        //}
 
         [HttpPost("/auth/send-otp-to-phone")]
         public async Task<IActionResult> OtpPhone([FromBody] sendPhoneOtpRequestBody phoneNo)
@@ -237,6 +227,43 @@ namespace AuthSA.Controllers
             }
 
         }
+
+        [HttpPost("/auth/login")]
+        public IActionResult Login([FromBody] ResetPasswordRequestBody requestBody)
+        {
+            if (checkAuthAPIKey() == false)
+            {
+                return StatusCode(401, jsonFactory.generateBadJson("Unauthorized"));
+            }
+
+            db.startConnection();
+            db.openConnection();
+
+            try
+            {
+                //check if user exists in db
+                bool ifExists = procedure.executeProcedureCheckIfUserExists(requestBody.PhoneNo, requestBody.Email);
+                if (!ifExists)
+                {
+                    return StatusCode(401, jsonFactory.generateResponseResetPassword("The user does not exist", "401"));
+                }
+
+                bool isCorrect = passwordHasher.VerifyPassword(requestBody.Password, requestBody.Email, requestBody.PhoneNo);
+                if (isCorrect)
+                {
+                    return Ok(isCorrect);
+                    //gen tokens
+                }
+
+                db.closeConnection();
+                return StatusCode(401, jsonFactory.generateResponseResetPassword("Invalid", "401"));
+            }
+            catch (Exception)
+            {
+                return StatusCode(401, jsonFactory.generateBadJson("There is an error with the response body"));
+            }
+        }
+
 
 
     }
