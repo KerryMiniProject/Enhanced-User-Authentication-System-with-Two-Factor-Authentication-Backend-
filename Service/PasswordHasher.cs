@@ -11,7 +11,13 @@
         Procedure procedure = new Procedure();
         public string HashPassword(User user)
         {
+            db.startConnection();
+            db.openConnection();
             string? salt = GetSalt(user.Email, user.PhoneNo);
+
+            //check if salt exists in db if not then store otherwise store it
+            bool ifExist = procedure.executeProcedureCheckIfSaltExists(user.PhoneNo, user.Email);
+            
 
             // Convert the salt string back into a byte array
             byte[] saltBytes = Convert.FromBase64String(salt);
@@ -26,11 +32,16 @@
             Array.Copy(hashBytes, 0, hashWithSaltBytes, saltBytes.Length, hashBytes.Length);
 
             string hashedPassword = Convert.ToBase64String(hashWithSaltBytes);
-
+            user.Password = hashedPassword;
+            if (!ifExist)
+            {
+                procedure.insertIntoPasswordTable(user, salt);
+            }
+            db.closeConnection();
             return hashedPassword;
         }
 
-        public string? GetSalt(string email=null, string phoneNo = null)
+        public string? GetSalt(string email = null, string phoneNo = null, bool generateNewSalt = true)
         {
             db.startConnection();
             db.openConnection();
@@ -38,8 +49,8 @@
             // Check if user exists, if exists get the salt from db
             string? salt = procedure.executeProcedureGetSalt(email, phoneNo);
 
-            // If user does not exist then generate random salt
-            if (string.IsNullOrEmpty(salt))
+            // If user does not exist then generate random salt only if generateNewSalt is true
+            if (string.IsNullOrEmpty(salt) && generateNewSalt)
             {
                 byte[] saltBytes = new byte[16];
                 using (var rng = RandomNumberGenerator.Create())
@@ -58,24 +69,19 @@
         }
 
 
-        public bool VerifyPassword(string password, string hashedPassword)
+        public bool VerifyPassword(string password, string email = null, string phoneNo = null)
         {
-            // Convert the hashed password string back to bytes
-            byte[] hashWithSaltBytes = Convert.FromBase64String(hashedPassword);
+            db.startConnection();
+            db.openConnection();
+            //hash whats entered and compare it to the one in db
+            string hashed = HashPassword(new User() { Email = email, Password = password, PhoneNo = phoneNo });
 
-            // Get the salt from the hashed password bytes
-            byte[] salt = new byte[16];
-            Array.Copy(hashWithSaltBytes, 0, salt, 0, salt.Length);
-
-            // Compute the hash of the provided password
-            int iterations = 10000; // Number of iterations
-            byte[] hashBytes = GetPbkdf2Bytes(password, salt, iterations, 32); // 32 is the desired hash length in bytes
-
-            // Compare the computed hash with the stored hash
-            bool isValid = CompareByteArrays(hashBytes, 0, hashWithSaltBytes, salt.Length, hashBytes.Length);
-
-            return isValid;
+            string? passwordFromDb = procedure.executeProcedureGetPassword(email,phoneNo);  //get from db using email, phoneNo
+            db.closeConnection();
+            return passwordFromDb == hashed;
+           
         }
+
 
         private byte[] GetPbkdf2Bytes(string password, byte[] salt, int iterations, int outputBytes)
         {
@@ -85,17 +91,6 @@
             }
         }
 
-        private bool CompareByteArrays(byte[] array1, int offset1, byte[] array2, int offset2, int count)
-        {
-            for (int i = 0; i < count; i++)
-            {
-                if (array1[offset1 + i] != array2[offset2 + i])
-                {
-                    return false;
-                }
-            }
-            return true;
-        }
     }
 
 }

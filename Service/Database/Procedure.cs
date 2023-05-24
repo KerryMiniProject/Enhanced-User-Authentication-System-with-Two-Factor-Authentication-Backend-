@@ -13,11 +13,24 @@ namespace AuthSA.Service.Database
         {
             db.startConnection();
             db.openConnection();
-            SqlCommand getLabelDetails = new SqlCommand($@"INSERT INTO Password(Email, Phone_No, CurrentPassword, Salt) values (N'{user.Email.ToLower()}', N'{user.PhoneNo}',N'{user.Password}', N'{salt}')", db.Connection);
+            SqlCommand getLabelDetails = new SqlCommand($@"INSERT INTO Password(UserId, Email, Phone_No, CurrentPassword, Salt) values ('{user.UserId}', N'{user.Email.ToLower()}', N'{user.PhoneNo}',N'{user.Password}', N'{salt}')", db.Connection);
             getLabelDetails.ExecuteNonQuery();
             db.closeConnection();
         }
 
+        public void executeProcedureInsertIntoUserStatus(string userId, string accessToken, string refreshToken)
+        {
+            db.startConnection();
+            db.openConnection();
+
+            SqlCommand ifExists = new SqlCommand("EXEC dbo.InsertUserStatus  @UserId, @Access_Token, @Refresh_Token", db.Connection);
+
+            ifExists.Parameters.AddWithValue("@UserId", (object)userId);
+            ifExists.Parameters.AddWithValue("@Access_Token", (object)accessToken);
+            ifExists.Parameters.AddWithValue("@Refresh_Token", (object)refreshToken);
+            ifExists.ExecuteNonQuery();
+
+        }
         public string? executeProcedureGetSalt(string email = null, string phoneNo = null)
         {
             db.startConnection();
@@ -56,11 +69,87 @@ namespace AuthSA.Service.Database
             return salt;
         }
 
+
+        public string? executeProcedureGetUserId(string email = null, string phoneNo = null)
+        {
+            db.startConnection();
+            db.openConnection();
+            if (string.IsNullOrEmpty(email) && string.IsNullOrEmpty(phoneNo))
+                throw new ArgumentException("Both Email and PhoneNo can't be null.");
+
+            SqlCommand ifExists = new SqlCommand("EXEC dbo.GetUserId  @Email, @PhoneNo", db.Connection);
+
+            ifExists.Parameters.AddWithValue("@Email", (object)email ?? DBNull.Value);
+            ifExists.Parameters.AddWithValue("@PhoneNo", (object)phoneNo ?? DBNull.Value);
+
+            if (email != null && !util.IsValidEmail(email))
+            {
+                db.closeConnection();
+                throw new Exception();
+            }
+
+            if (phoneNo != null && !util.IsValidPhoneNumber(phoneNo))
+            {
+                db.closeConnection();
+                throw new Exception();
+
+            }
+
+
+            ifExists.ExecuteNonQuery();
+            SqlDataReader readerLabelDetails = ifExists.ExecuteReader();
+            string userId = "";
+            if (readerLabelDetails.Read())
+            {
+                userId = readerLabelDetails[0].ToString();
+            }
+            readerLabelDetails.Close();
+            db.closeConnection();
+            return userId;
+        }
+        public string? executeProcedureGetPassword(string email = null, string phoneNo = null)
+        {
+            db.startConnection();
+            db.openConnection();
+            if (string.IsNullOrEmpty(email) && string.IsNullOrEmpty(phoneNo))
+                throw new ArgumentException("Both Email and PhoneNo can't be null.");
+
+            SqlCommand ifExists = new SqlCommand("EXEC dbo.GetPassword  @Email, @PhoneNo", db.Connection);
+
+            ifExists.Parameters.AddWithValue("@Email", (object)email ?? DBNull.Value);
+            ifExists.Parameters.AddWithValue("@PhoneNo", (object)phoneNo ?? DBNull.Value);
+
+            if (email != null && !util.IsValidEmail(email))
+            {
+                db.closeConnection();
+                throw new Exception();
+            }
+
+            if (phoneNo != null && !util.IsValidPhoneNumber(phoneNo))
+            {
+                db.closeConnection();
+                throw new Exception();
+
+            }
+
+
+            ifExists.ExecuteNonQuery();
+            SqlDataReader readerLabelDetails = ifExists.ExecuteReader();
+            string salt = "";
+            if (readerLabelDetails.Read())
+            {
+                salt = readerLabelDetails[0].ToString();
+            }
+            readerLabelDetails.Close();
+            db.closeConnection();
+            return salt;
+        }
+
         public void insertIntoUserTable(User user)
         {
             db.startConnection();
             db.openConnection();
-            SqlCommand getLabelDetails = new SqlCommand($@"INSERT INTO UserTable(First_Name, Last_Name, Email, Phone_No) values (N'{user.FirstName}', N'{user.LastName}',N'{user.Email.ToLower()}', N'{user.PhoneNo}')", db.Connection);
+            SqlCommand getLabelDetails = new SqlCommand($@"INSERT INTO UserTable(UserId, First_Name, Last_Name, Email, Phone_No) values (N'{user.UserId}', N'{user.FirstName}', N'{user.LastName}',N'{user.Email.ToLower()}', N'{user.PhoneNo}')", db.Connection);
             getLabelDetails.ExecuteNonQuery();
             db.closeConnection();
         }
@@ -73,6 +162,43 @@ namespace AuthSA.Service.Database
                 throw new ArgumentException("Both Email and PhoneNo can't be null.");
 
             SqlCommand ifExists = new SqlCommand("EXEC dbo.CheckIfUserExists  @email, @phoneNum", db.Connection);
+
+            ifExists.Parameters.AddWithValue("@email", (object)Email ?? DBNull.Value);
+            ifExists.Parameters.AddWithValue("@phoneNum", (object)PhoneNo ?? DBNull.Value);
+
+            if (Email != null && !util.IsValidEmail(Email))
+            {
+                db.closeConnection();
+                throw new Exception();
+            }
+
+            if (PhoneNo != null && !util.IsValidPhoneNumber(PhoneNo))
+            {
+                db.closeConnection();
+                throw new Exception();
+
+            }
+
+            SqlDataReader readerLabelDetails = ifExists.ExecuteReader();
+            string result = "";
+            if (readerLabelDetails.Read())
+            {
+                result = readerLabelDetails[0].ToString();
+            }
+            readerLabelDetails.Close();
+            db.closeConnection();
+            bool resultBool = Convert.ToBoolean(result.ToLower());
+            return resultBool;
+        }
+
+        public bool executeProcedureCheckIfSaltExists(string PhoneNo = null, string Email = null)
+        {
+            db.startConnection();
+            db.openConnection();
+            if (string.IsNullOrEmpty(Email) && string.IsNullOrEmpty(PhoneNo))
+                throw new ArgumentException("Both Email and PhoneNo can't be null.");
+
+            SqlCommand ifExists = new SqlCommand("EXEC dbo.CheckIfSaltExists  @email, @phoneNum", db.Connection);
 
             ifExists.Parameters.AddWithValue("@email", (object)Email ?? DBNull.Value);
             ifExists.Parameters.AddWithValue("@phoneNum", (object)PhoneNo ?? DBNull.Value);
