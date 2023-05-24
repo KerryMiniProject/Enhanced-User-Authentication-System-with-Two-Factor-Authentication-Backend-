@@ -261,6 +261,27 @@ namespace AuthSA.Service.Database
             return resultBool;
         }
 
+        public bool executeProcedureCheckIfTokensExist(string refreshToken, string accessToken)
+        {
+            db.startConnection();
+            db.openConnection();
+
+            SqlCommand ifExists = new SqlCommand("EXEC dbo.CheckTokensExist  @RefreshToken, @AccessToken", db.Connection);
+
+            ifExists.Parameters.AddWithValue("@RefreshToken", (object)refreshToken);
+            ifExists.Parameters.AddWithValue("@AccessToken", (object)accessToken);
+            SqlDataReader readerLabelDetails = ifExists.ExecuteReader();
+            string result = "";
+            if (readerLabelDetails.Read())
+            {
+                result = readerLabelDetails[0].ToString();
+            }
+            readerLabelDetails.Close();
+            db.closeConnection();
+            bool resultBool = Convert.ToBoolean(result.ToLower());
+            return resultBool;
+        }
+
         public bool executeProcedureCheckIfSaltExists(string PhoneNo = null, string Email = null)
         {
             db.startConnection();

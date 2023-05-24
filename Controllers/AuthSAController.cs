@@ -296,6 +296,10 @@ namespace AuthSA.Controllers
                     procedure.executeProcedureDeleteSession(requestBody.RefreshToken);
                     return StatusCode(401, jsonFactory.generateBadJson("Refresh Token has expired"));
                 }
+                if(!procedure.executeProcedureCheckIfTokensExist(requestBody.RefreshToken, requestBody.AccessToken))
+                {
+                    return StatusCode(401, jsonFactory.generateBadJson("Unauthorized"));
+                }
                
                 string? userId = procedure.executeProcedureGetUserIdByRefreshToken(requestBody.RefreshToken);
                 if(userId.IsNullOrEmpty())
@@ -312,7 +316,7 @@ namespace AuthSA.Controllers
             }
             catch (Exception)
             {
-                return StatusCode(401, jsonFactory.generateBadJson("Unauthorized"));
+                return StatusCode(401, jsonFactory.generateBadJson("There is an error with the response body"));
             }
         }
 
