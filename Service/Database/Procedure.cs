@@ -13,19 +13,11 @@ namespace AuthSA.Service.Database
         {
             db.startConnection();
             db.openConnection();
-            SqlCommand getLabelDetails = new SqlCommand($@"INSERT INTO Password(Email, Phone_No, CurrentPassword, Salt) values (N'{user.Email.ToLower()}', N'{user.PhoneNo}',N'{user.Password}', N'{salt}')", db.Connection);
+            SqlCommand getLabelDetails = new SqlCommand($@"INSERT INTO Password(UserId, Email, Phone_No, CurrentPassword, Salt) values ('{user.UserId}', N'{user.Email.ToLower()}', N'{user.PhoneNo}',N'{user.Password}', N'{salt}')", db.Connection);
             getLabelDetails.ExecuteNonQuery();
             db.closeConnection();
         }
 
-        //public void insertSaltIntoPasswordTable(User user, string salt)
-        //{
-        //    db.startConnection();
-        //    db.openConnection();
-        //    SqlCommand getLabelDetails = new SqlCommand($@"INSERT INTO Password(Email, Phone_No, Salt) values (N'{user.Email.ToLower()}', N'{user.PhoneNo}', N'{salt}')", db.Connection);
-        //    getLabelDetails.ExecuteNonQuery();
-        //    db.closeConnection();
-        //}
 
         public string? executeProcedureGetSalt(string email = null, string phoneNo = null)
         {
@@ -107,7 +99,7 @@ namespace AuthSA.Service.Database
         {
             db.startConnection();
             db.openConnection();
-            SqlCommand getLabelDetails = new SqlCommand($@"INSERT INTO UserTable(First_Name, Last_Name, Email, Phone_No) values (N'{user.FirstName}', N'{user.LastName}',N'{user.Email.ToLower()}', N'{user.PhoneNo}')", db.Connection);
+            SqlCommand getLabelDetails = new SqlCommand($@"INSERT INTO UserTable(UserId, First_Name, Last_Name, Email, Phone_No) values (N'{user.UserId}', N'{user.FirstName}', N'{user.LastName}',N'{user.Email.ToLower()}', N'{user.PhoneNo}')", db.Connection);
             getLabelDetails.ExecuteNonQuery();
             db.closeConnection();
         }

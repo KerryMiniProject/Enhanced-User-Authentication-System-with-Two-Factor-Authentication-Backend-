@@ -44,6 +44,7 @@ namespace AuthSA.Controllers
 
                 try
                 {
+                    user.UserId = Guid.NewGuid().ToString();
                     string hashed = passwordHasher.HashPassword(user);
                     procedure.insertIntoUserTable(user);
                     db.closeConnection();

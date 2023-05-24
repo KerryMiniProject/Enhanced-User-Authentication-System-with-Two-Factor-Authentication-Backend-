@@ -91,23 +91,6 @@
             }
         }
 
-        private bool CompareByteArrays(byte[] array1, int offset1, byte[] array2, int offset2, int count)
-        {
-            if (array1.Length != array2.Length - offset2 + offset1)
-            {
-                return false;
-            }
-
-            for (int i = 0; i < count; i++)
-            {
-                if (array1[offset1 + i] != array2[offset2 + i])
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
     }
 
 }
