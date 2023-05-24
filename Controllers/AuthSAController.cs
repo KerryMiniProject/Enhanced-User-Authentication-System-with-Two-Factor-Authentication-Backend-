@@ -320,6 +320,54 @@ namespace AuthSA.Controllers
             }
         }
 
+        [HttpGet("/auth/check-access-token-expiry")]
+        public IActionResult CheckAccessTokenExpiry()
+        {
+            db.startConnection();
+            db.openConnection();
+            string? bearer = "";
+            try
+            {
+                bearer = Request.Headers["Authorization"];
+                if (bearer.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+                {
+                    bearer = bearer.Substring("Bearer ".Length);
+                }
+                else
+                {
+                    db.closeConnection();
+                    return StatusCode(401, jsonFactory.generateBadJson("Unauthorized"));
+                }
+                if (checkAuthAPIKey() == false)
+                {
+                    db.closeConnection();
+                    return StatusCode(401, jsonFactory.generateBadJson("Unauthorized"));
+                }
+                if(!procedure.executeProcedureCheckIfAccessTokenExist(bearer) || checkAuthAPIKey() == false || bearer.IsNullOrEmpty())
+                {
+                    db.closeConnection();
+                    return StatusCode(401, jsonFactory.generateBadJson("Unauthorized"));
+                }
+
+            }
+            catch(Exception)
+            {
+                return StatusCode(401, jsonFactory.generateBadJson("Unauthorized"));
+            }
+            
+
+            try
+            {
+                bool isExpired = procedure.executeProcedureCheckExpiryAccessToken(bearer);
+                db.closeConnection();
+                return Ok(jsonFactory.generateResponseCheckExpiry(isExpired));
+            }
+            catch (Exception)
+            {
+                return StatusCode(401, jsonFactory.generateBadJson("There is an error with the response body"));
+            }
+        }
+
 
 
     }

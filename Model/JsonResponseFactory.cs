@@ -24,6 +24,17 @@ namespace AuthSA.Model
             return response;
 
         }
+
+        public JsonResponseCheckAccessTokenExpiry? generateResponseCheckExpiry(bool expired)
+        {
+            JsonResponseCheckAccessTokenExpiry response = new JsonResponseCheckAccessTokenExpiry();
+            response.error = false;
+            response.code = "200";
+            response.description = "Successful";
+            response.display = "Sign up successful";
+            response.isExpired = expired;
+            return response;
+        }
         public JsonResponseOtpEmail generateResponseOtpEmail(sendEmailOtpRequestBody email, string guid)
         {
             JsonResponseOtpEmail response = new JsonResponseOtpEmail();
@@ -146,6 +157,15 @@ namespace AuthSA.Model
         public string? code { get; set; }
         public string? description { get; set; }
         public string? display { get; set; }
+    }
+
+    public class JsonResponseCheckAccessTokenExpiry
+    {
+        public bool? error { get; set; }
+        public string? code { get; set; }
+        public string? description { get; set; }
+        public string? display { get; set; }
+        public bool? isExpired { get; set; }
     }
 
     public class JsonResponseFactory
