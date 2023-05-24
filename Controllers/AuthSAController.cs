@@ -312,7 +312,8 @@ namespace AuthSA.Controllers
                 //update in db then return the tokens
                 procedure.executeProcedureUpdateAccessToken(requestBody.RefreshToken, token.AccessToken);
                 db.closeConnection();
-                return Ok(token);
+                AccessToken accessToken = new AccessToken() { accessToken = token.AccessToken};
+                return Ok(accessToken);
             }
             catch (Exception)
             {
@@ -364,6 +365,51 @@ namespace AuthSA.Controllers
             }
             catch (Exception)
             {
+                return StatusCode(401, jsonFactory.generateBadJson("There is an error with the response body"));
+            }
+        }
+
+
+        [HttpGet("/auth/logout")]
+        public IActionResult Logout()
+        {
+            db.startConnection();
+            db.openConnection();
+            string accessToken = "";
+            string refreshToken = "";
+            try
+            {
+                accessToken = Request.Headers["X-Access-Token"];
+                refreshToken = Request.Headers["X-Refresh-Token"];
+
+                if (checkAuthAPIKey() == false)
+                {
+                    db.closeConnection();
+                    return StatusCode(401, jsonFactory.generateBadJson("Unauthorized"));
+                }
+
+                if (!procedure.executeProcedureCheckIfTokensExist(refreshToken, accessToken) || checkAuthAPIKey() == false || accessToken.IsNullOrEmpty() || refreshToken.IsNullOrEmpty())
+                {
+                    db.closeConnection();
+                    return StatusCode(401, jsonFactory.generateBadJson("Unauthorized"));
+                }
+
+            }
+            catch (Exception)
+            {
+                return StatusCode(401, jsonFactory.generateBadJson("Unauthorized"));
+            }
+
+
+            try
+            {
+                procedure.executeProcedureDeleteSession(refreshToken, accessToken);
+                db.closeConnection();
+                return Ok(jsonFactory.generateResponseLogout());
+            }
+            catch (Exception)
+            {
+                db.closeConnection();
                 return StatusCode(401, jsonFactory.generateBadJson("There is an error with the response body"));
             }
         }

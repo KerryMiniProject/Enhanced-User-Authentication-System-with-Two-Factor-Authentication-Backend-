@@ -25,6 +25,17 @@ namespace AuthSA.Model
 
         }
 
+        public JsonResponseSignUp? generateResponseLogout()
+        {
+            JsonResponseSignUp response = new JsonResponseSignUp();
+            response.error = false;
+            response.code = "200";
+            response.description = "Successful";
+            response.display = "Logout successful";
+            return response;
+
+        }
+
         public JsonResponseCheckAccessTokenExpiry? generateResponseCheckExpiry(bool expired)
         {
             JsonResponseCheckAccessTokenExpiry response = new JsonResponseCheckAccessTokenExpiry();
