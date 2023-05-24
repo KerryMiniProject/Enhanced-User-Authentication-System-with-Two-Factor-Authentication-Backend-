@@ -375,8 +375,8 @@ namespace AuthSA.Controllers
         {
             db.startConnection();
             db.openConnection();
-            string? accessToken = "";
-            string? refreshToken = "";
+            string accessToken = "";
+            string refreshToken = "";
             try
             {
                 accessToken = Request.Headers["X-Access-Token"];
