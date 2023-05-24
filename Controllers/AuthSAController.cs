@@ -3,9 +3,7 @@ using AuthSA.Service;
 using AuthSA.Service.Database;
 using AuthSA.Util;
 using Microsoft.AspNetCore.Mvc;
-
-
-
+using Microsoft.IdentityModel.Tokens;
 
 namespace AuthSA.Controllers
 {
@@ -300,6 +298,10 @@ namespace AuthSA.Controllers
                 }
                
                 string? userId = procedure.executeProcedureGetUserIdByRefreshToken(requestBody.RefreshToken);
+                if(userId.IsNullOrEmpty())
+                {
+                    return StatusCode(401, jsonFactory.generateBadJson("Unauthorized"));
+                }
                 token.RefreshToken = requestBody.RefreshToken;
                 token.AccessToken = tokenService.GenerateAccessToken(userId);
 
