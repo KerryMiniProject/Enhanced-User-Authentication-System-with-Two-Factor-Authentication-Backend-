@@ -3,15 +3,12 @@ using AuthSA.Service;
 using AuthSA.Service.Database;
 using AuthSA.Util;
 using Microsoft.AspNetCore.Mvc;
-
-
-
+using Microsoft.IdentityModel.Tokens;
 
 namespace AuthSA.Controllers
 {
     public class AuthSAController : Controller
     {
-        Token token = new Token();
         TokenService tokenService = new TokenService("abcdefghijklmnopqrstuvwxyz");
         PasswordHasher passwordHasher = new PasswordHasher();
         OTPProvider otpProvider = new OTPProvider();
@@ -235,6 +232,7 @@ namespace AuthSA.Controllers
         [HttpPost("/auth/login")]
         public IActionResult Login([FromBody] ResetPasswordRequestBody requestBody)
         {
+            Token token = new Token();
             db.startConnection();
             db.openConnection();
             if (checkAuthAPIKey() == false)
@@ -270,6 +268,51 @@ namespace AuthSA.Controllers
 
                 db.closeConnection();
                 return StatusCode(401, jsonFactory.generateResponseResetPassword("Invalid", "401"));
+            }
+            catch (Exception)
+            {
+                return StatusCode(401, jsonFactory.generateBadJson("There is an error with the response body"));
+            }
+        }
+
+
+        [HttpPost("/auth/generate-access-token")]
+        public IActionResult GetNewAccessToken([FromBody] GenerateAccessTokenRequestBody requestBody)
+        {
+            Token token = new Token();
+            db.startConnection();
+            db.openConnection();
+            if (checkAuthAPIKey() == false)
+            {
+                return StatusCode(401, jsonFactory.generateBadJson("Unauthorized"));
+            }
+
+            
+
+            try
+            {
+                if (procedure.executeProcedureCheckExpiryRefreshToken(requestBody.RefreshToken))
+                {
+                    procedure.executeProcedureDeleteSession(requestBody.RefreshToken);
+                    return StatusCode(401, jsonFactory.generateBadJson("Refresh Token has expired"));
+                }
+                if(!procedure.executeProcedureCheckIfTokensExist(requestBody.RefreshToken, requestBody.AccessToken))
+                {
+                    return StatusCode(401, jsonFactory.generateBadJson("Unauthorized"));
+                }
+               
+                string? userId = procedure.executeProcedureGetUserIdByRefreshToken(requestBody.RefreshToken);
+                if(userId.IsNullOrEmpty())
+                {
+                    return StatusCode(401, jsonFactory.generateBadJson("Unauthorized"));
+                }
+                token.RefreshToken = requestBody.RefreshToken;
+                token.AccessToken = tokenService.GenerateAccessToken(userId);
+
+                //update in db then return the tokens
+                procedure.executeProcedureUpdateAccessToken(requestBody.RefreshToken, token.AccessToken);
+                db.closeConnection();
+                return Ok(token);
             }
             catch (Exception)
             {
