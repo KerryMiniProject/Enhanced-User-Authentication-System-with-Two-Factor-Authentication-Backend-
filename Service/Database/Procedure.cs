@@ -469,7 +469,7 @@ namespace AuthSA.Service.Database
         }
 
 
-        public bool executeProcedureVerifyEmailOtp(string guid, string otp, string email)
+        public string executeProcedureVerifyEmailOtp(string guid, string otp)
         {
             db.startConnection();
             db.openConnection();
@@ -478,22 +478,22 @@ namespace AuthSA.Service.Database
             ifExists.CommandType = CommandType.StoredProcedure;
 
             ifExists.Parameters.Add("@Guid", SqlDbType.VarChar).Value = guid;
-            ifExists.Parameters.Add("@Email", SqlDbType.NVarChar).Value = email;
             ifExists.Parameters.Add("@Otp", SqlDbType.VarChar).Value = otp;
 
-            bool resultBool = false;
+            string email = string.Empty;
             using (SqlDataReader readerLabelDetails = ifExists.ExecuteReader())
             {
                 if (readerLabelDetails.Read())
                 {
-                    resultBool = readerLabelDetails.GetBoolean(0);
+                    email = readerLabelDetails.GetString(0);
                 }
             }
 
             db.closeConnection();
 
-            return resultBool;
+            return email;
         }
+
 
 
     }

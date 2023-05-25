@@ -10,7 +10,6 @@
     public class OtpEmailVerificationRequestBody
     {
         public string? Token { get; set; }
-        public string? Email { get; set; }
         public string? Otp { get; set; }
     }
 
@@ -57,6 +56,14 @@
         public OtpEmailVerificationRequestBody? emailVerificationRequestBody { get; set; }
 
     }
+
+    public class SignupRequestBody
+    {
+        public User? user { get; set; }
+        public OtpPhoneVerificationRequestBody? phoneVerificationRequestBody { get; set; }
+        public OtpEmailVerificationRequestBody? emailVerificationRequestBody { get; set; }
+    }
+
 
     public class GenerateAccessTokenRequestBody
     {
