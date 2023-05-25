@@ -140,7 +140,7 @@ namespace AuthSA.Controllers
         }
 
         [HttpPost("/auth/verify-email-otp")]
-        public async Task<IActionResult> VerifyEmailOtp([FromBody] OtpEmailVerificationRequestBody requestBody)
+        public IActionResult VerifyEmailOtp([FromBody] OtpEmailVerificationRequestBody requestBody)
         {
             JsonResponseOtpEmailVerification response = new JsonResponseOtpEmailVerification();
 
@@ -153,6 +153,10 @@ namespace AuthSA.Controllers
             try
             {
                 bool istrue = procedure.executeProcedureVerifyEmailOtp(requestBody.Token, requestBody.Otp, requestBody.Email);
+                if (!istrue)
+                {
+                    return StatusCode(401, jsonFactory.generateBadJson("Otp is wrong or expired"));
+                }
                 response = jsonFactory.generateSuccessfulOtpEmailVerificicationResponse(requestBody, istrue);
                 db.closeConnection();
                 return Ok(response);
@@ -576,7 +580,7 @@ namespace AuthSA.Controllers
                 if (!istrue)
                 {
                     db.closeConnection();
-                    return Task.FromResult<IActionResult>(StatusCode(401, jsonFactory.generateBadJson("Otp/Token incorrect")));
+                    return Task.FromResult<IActionResult>(StatusCode(401, jsonFactory.generateBadJson("Otp/Token incorrect or expired")));
                 }
             }
             catch (Exception ex)

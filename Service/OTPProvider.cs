@@ -97,18 +97,29 @@ namespace AuthSA.Util
                     SqlCommand selectCommand = new SqlCommand(selectQuery, db.Connection);
                     int emailCount = (int)selectCommand.ExecuteScalar();
 
+                    DateTime expireAt = DateTime.Now.AddMinutes(5);
+
                     if (emailCount > 0)
                     {
-                        string updateQuery = $"UPDATE [dbo].[otpEmail] SET [GUID] = '{guid}', [OTP] = '{otpString}' WHERE [Email] = '{email}'";
+                        string updateQuery = "UPDATE [dbo].[otpEmail] SET [GUID] = @guid, [OTP] = @otp, [ExpireAt] = @expireAt WHERE [Email] = @email";
                         SqlCommand updateCommand = new SqlCommand(updateQuery, db.Connection);
+                        updateCommand.Parameters.AddWithValue("@guid", guid);
+                        updateCommand.Parameters.AddWithValue("@otp", otpString);
+                        updateCommand.Parameters.AddWithValue("@expireAt", expireAt);
+                        updateCommand.Parameters.AddWithValue("@email", email);
                         updateCommand.ExecuteNonQuery();
                     }
                     else
                     {
-                        string insertQuery = $"INSERT INTO [dbo].[otpEmail] ([GUID], [Email], [OTP]) VALUES ('{guid}', '{email}', '{otpString}')";
+                        string insertQuery = "INSERT INTO [dbo].[otpEmail] ([GUID], [Email], [OTP], [ExpireAt]) VALUES (@guid, @email, @otp, @expireAt)";
                         SqlCommand insertCommand = new SqlCommand(insertQuery, db.Connection);
+                        insertCommand.Parameters.AddWithValue("@guid", guid);
+                        insertCommand.Parameters.AddWithValue("@email", email);
+                        insertCommand.Parameters.AddWithValue("@otp", otpString);
+                        insertCommand.Parameters.AddWithValue("@expireAt", expireAt);
                         insertCommand.ExecuteNonQuery();
                     }
+
                     string body = $"<h1>Hello</h1><p>This is your OTP {otpString} </p><br><img src=\"cid:qrCodeImage\">";
                     AlternateView htmlView = AlternateView.CreateAlternateViewFromString(body, null, "text/html");
                     mail.AlternateViews.Add(htmlView);
