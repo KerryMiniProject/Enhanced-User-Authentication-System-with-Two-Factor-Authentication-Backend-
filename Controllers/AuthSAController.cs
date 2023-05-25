@@ -30,8 +30,9 @@ namespace AuthSA.Controllers
         }
 
         [HttpPost("/auth/sign-up")]
-        public IActionResult SignUp([FromBody] User user)
+        public async Task<IActionResult> SignUp([FromBody] SignupRequestBody requestBody)
         {
+            User user = requestBody.user;
             if (checkAuthAPIKey() == false)
             {
                 return StatusCode(401, jsonFactory.generateBadJson("Unauthorized"));
@@ -44,6 +45,41 @@ namespace AuthSA.Controllers
                 return StatusCode(401, jsonFactory.generateBadJson("User already exists"));
             }
 
+            //verify phone otp
+            OtpPhoneVerificationRequestBody phoneVerificationRequestBody = new OtpPhoneVerificationRequestBody();
+            phoneVerificationRequestBody.Otp = requestBody.phoneVerificationRequestBody.Otp;
+            phoneVerificationRequestBody.Reference = requestBody.phoneVerificationRequestBody.Reference;
+            phoneVerificationRequestBody.Token = requestBody.phoneVerificationRequestBody.Token;
+            //call otp verificaiton api for phone
+            try
+            {
+                OtpVerificationJsonResponseKerry resp = new OtpVerificationJsonResponseKerry();
+                resp = await otpProvider.VerifyOTP(phoneVerificationRequestBody);
+                if (resp.Recipient != user.PhoneNo)
+                {
+                    return StatusCode(401, jsonFactory.generateBadJson("Unauthorized"));
+                }
+            }
+            catch (Exception)
+            {
+                db.closeConnection();
+                return StatusCode(401, jsonFactory.generateBadJson("Otp/Ref/Token for phone incorrect"));
+            }
+
+            //verify email otp
+            OtpEmailVerificationRequestBody emailVerificationRequestBody = new OtpEmailVerificationRequestBody();
+            emailVerificationRequestBody.Otp = requestBody.emailVerificationRequestBody.Otp;
+            emailVerificationRequestBody.Token = requestBody.emailVerificationRequestBody.Token;
+            JsonResponseOtpEmailVerification response = new JsonResponseOtpEmailVerification();
+            //call otp verificaiton api for email
+            string emailOtp = procedure.executeProcedureVerifyEmailOtp(emailVerificationRequestBody.Token, emailVerificationRequestBody.Otp);
+            if (emailOtp.IsNullOrEmpty() || emailOtp!=user.Email)
+            {
+                db.closeConnection();
+                return StatusCode(401, jsonFactory.generateBadJson("Otp/Token for email incorrect or expired"));
+            }
+
+            //if above checks pass, proceed to sign up
             try
             {
                 user.UserId = Guid.NewGuid().ToString();
@@ -152,12 +188,12 @@ namespace AuthSA.Controllers
             db.openConnection();
             try
             {
-                bool istrue = procedure.executeProcedureVerifyEmailOtp(requestBody.Token, requestBody.Otp, requestBody.Email);
-                if (!istrue)
+                string otpEmail = procedure.executeProcedureVerifyEmailOtp(requestBody.Token, requestBody.Otp);
+                if (otpEmail.IsNullOrEmpty())
                 {
                     return StatusCode(401, jsonFactory.generateBadJson("Otp is wrong or expired"));
                 }
-                response = jsonFactory.generateSuccessfulOtpEmailVerificicationResponse(requestBody, istrue);
+                response = jsonFactory.generateSuccessfulOtpEmailVerificicationResponse(requestBody, true, otpEmail);
                 db.closeConnection();
                 return Ok(response);
             }
@@ -559,7 +595,6 @@ namespace AuthSA.Controllers
 
             OtpEmailVerificationRequestBody emailVerificationRequestBody = new OtpEmailVerificationRequestBody();
             emailVerificationRequestBody.Otp = requestBody.emailVerificationRequestBody.Otp;
-            emailVerificationRequestBody.Email = requestBody.emailVerificationRequestBody.Email;
             emailVerificationRequestBody.Token = requestBody.emailVerificationRequestBody.Token;
             JsonResponseOtpEmailVerification response = new JsonResponseOtpEmailVerification();   
             if (!procedure.executeProcedureCheckIfUserExists(requestBody.PhoneNo, requestBody.Email))
@@ -576,8 +611,8 @@ namespace AuthSA.Controllers
                 }
 
                 //call otp verificaiton api for email
-                bool istrue = procedure.executeProcedureVerifyEmailOtp(emailVerificationRequestBody.Token, emailVerificationRequestBody.Otp, emailVerificationRequestBody.Email);
-                if (!istrue)
+                string email = procedure.executeProcedureVerifyEmailOtp(emailVerificationRequestBody.Token, emailVerificationRequestBody.Otp);
+                if (email.IsNullOrEmpty() || email != requestBody.Email)
                 {
                     db.closeConnection();
                     return Task.FromResult<IActionResult>(StatusCode(401, jsonFactory.generateBadJson("Otp/Token incorrect or expired")));

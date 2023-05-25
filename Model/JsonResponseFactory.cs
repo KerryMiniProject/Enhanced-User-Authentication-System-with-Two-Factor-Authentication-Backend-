@@ -116,7 +116,7 @@ namespace AuthSA.Model
         }
 
 
-        public JsonResponseOtpEmailVerification generateSuccessfulOtpEmailVerificicationResponse(OtpEmailVerificationRequestBody requestBody, bool ifExists)
+        public JsonResponseOtpEmailVerification generateSuccessfulOtpEmailVerificicationResponse(OtpEmailVerificationRequestBody requestBody, bool ifExists, string email)
         {
             JsonResponseOtpEmailVerification jsonResponse = new JsonResponseOtpEmailVerification();
             jsonResponse.error = false;
@@ -124,7 +124,7 @@ namespace AuthSA.Model
             jsonResponse.description = "OK";
             jsonResponse.display = (ifExists) ? "Successfully": "Verification Failed";
             jsonResponse.token = requestBody.Token;
-            jsonResponse.recipient = requestBody.Email;
+            jsonResponse.recipient = email;
             jsonResponse.isValidOtp = ifExists;
 
             return jsonResponse;
