@@ -152,6 +152,31 @@ namespace AuthSA.Service.Database
             return userId;
         }
 
+        public string? executeProcedureGetUserIdByTokenId(string tokenId)
+        {
+            db.startConnection();
+            db.openConnection();
+
+            SqlCommand ifExists = new SqlCommand("dbo.GetUserIdByTokenId", db.Connection);
+            ifExists.CommandType = CommandType.StoredProcedure;
+
+            ifExists.Parameters.AddWithValue("@TokenId", tokenId);
+
+            string userId = "";
+            using (SqlDataReader readerLabelDetails = ifExists.ExecuteReader())
+            {
+                if (readerLabelDetails.Read())
+                {
+                    userId = readerLabelDetails.GetString(0);
+                }
+            }
+
+            db.closeConnection();
+
+            return userId;
+        }
+
+
         public string? executeProcedureGetUserIdByAccessToken(string accessToken)
         {
             db.startConnection();
