@@ -42,7 +42,7 @@ namespace AuthSA.Model
             response.error = false;
             response.code = "200";
             response.description = "Successful";
-            response.display = "Sign up successful";
+            response.display = (expired)?"Access Token has expired": "Access Token has not expired";
             response.isExpired = expired;
             return response;
         }
