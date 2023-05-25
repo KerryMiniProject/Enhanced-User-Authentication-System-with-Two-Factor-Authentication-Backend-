@@ -39,6 +39,11 @@
 
     }
 
+    public class QrLoginRequestBody
+    {
+        public string? Token { get; set; }
+    }
+
     public class ForgetPasswordPhoneRequestBody
     {
         public string? PhoneNo { get; set; }

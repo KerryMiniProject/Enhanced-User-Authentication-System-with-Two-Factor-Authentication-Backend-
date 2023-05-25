@@ -131,6 +131,17 @@ namespace AuthSA.Model
         }
 
 
+        public JsonResponseQrCodeLogin generateSuccessfulQrLoginResponse()
+        {
+            JsonResponseQrCodeLogin jsonResponse = new JsonResponseQrCodeLogin();
+            jsonResponse.error = false;
+            jsonResponse.code = "200";
+            jsonResponse.description = "OK";
+            jsonResponse.display = "Successful";
+
+            return jsonResponse;
+        }
+
     }
 
 
@@ -248,9 +259,17 @@ namespace AuthSA.Model
         public bool? IsValidOtp { get; set; }
     }
 
+    public class JsonResponseQrCodeLogin
+    {
+        public bool? error { get; set; }
+        public string? code { get; set; }
+        public string? description { get; set; }
+        public string? display { get; set; }
+
+    }
 
 
- 
+
 
 
 }

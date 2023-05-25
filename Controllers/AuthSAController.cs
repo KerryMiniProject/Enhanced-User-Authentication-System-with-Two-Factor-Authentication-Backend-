@@ -656,5 +656,62 @@ namespace AuthSA.Controllers
                 return Task.FromResult<IActionResult>(StatusCode(401, jsonFactory.generateBadJson("There is an error with the response body")));
             }
         }
+
+        [HttpPost("/auth/qr-login")]
+        public IActionResult QrLogin([FromBody]QrLoginRequestBody requestBody)
+        {
+            try
+            {
+                //accept access token in header and qr token in body
+                if (checkAuthAPIKey() == false || Request.Headers["Authorization"].IsNullOrEmpty())
+                {
+                    db.closeConnection();
+                    return StatusCode(401, jsonFactory.generateBadJson("Unauthorized"));
+                }
+                db.startConnection();
+                db.openConnection();
+
+                string accessToken;
+
+                //Get access token
+                accessToken = Request.Headers["Authorization"];
+
+                if (accessToken.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+                {
+                    accessToken = accessToken.Substring("Bearer ".Length);
+                }
+                else
+                {
+                    db.closeConnection();
+                    return StatusCode(401, jsonFactory.generateBadJson("Unauthorized"));
+                }
+
+                //check if token is expired
+                bool ifExpired = procedure.executeProcedureCheckExpiryAccessToken(accessToken);
+                if (ifExpired)
+                {
+                    db.closeConnection();
+                    return StatusCode(401, jsonFactory.generateBadJson("Token has expired"));
+                }
+
+                //take access token to get UserId
+                string? userId = procedure.executeProcedureGetUserIdByAccessToken(accessToken);
+                if (userId.IsNullOrEmpty())
+                {
+                    return StatusCode(401, jsonFactory.generateBadJson("Unauthorized"));
+                }
+
+
+                //insert qr token and user id into token table
+                procedure.insertIntoTokenTable(userId, requestBody.Token);
+                //use another api for web which takes in the qr token and checks whether the token exists in token table. if yes then login for the web, meaning generate access and refresh token. store them in db with the user id thats in the token table
+                return Ok(jsonFactory.generateSuccessfulQrLoginResponse());
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(401, jsonFactory.generateBadJson("Unauthorized"));
+            }
+            
+        }
     }
 }
