@@ -520,46 +520,54 @@ namespace AuthSA.Controllers
         [HttpPost("/auth/forget-password-phone")]
         public async Task<IActionResult> ForgetPasswordPhone([FromBody] ForgetPasswordPhoneRequestBody requestBody)
         {
-
-            OtpPhoneVerificationRequestBody phoneVerificationRequestBody = new OtpPhoneVerificationRequestBody();
-            phoneVerificationRequestBody.Otp = requestBody.phoneVerificationRequestBody.Otp;
-            phoneVerificationRequestBody.Reference = requestBody.phoneVerificationRequestBody.Reference;
-            phoneVerificationRequestBody.Token = requestBody.phoneVerificationRequestBody.Token;
-            db.startConnection();
-            db.openConnection();
-            if (!procedure.executeProcedureCheckIfUserExists(requestBody.PhoneNo, requestBody.Email))
-            {
-                db.closeConnection();
-                return StatusCode(401, jsonFactory.generateBadJson("Unauthorized"));
-            }
             try
             {
-                if (checkAuthAPIKey() == false)
+                OtpPhoneVerificationRequestBody phoneVerificationRequestBody = new OtpPhoneVerificationRequestBody();
+                phoneVerificationRequestBody.Otp = requestBody.phoneVerificationRequestBody.Otp;
+                phoneVerificationRequestBody.Reference = requestBody.phoneVerificationRequestBody.Reference;
+                phoneVerificationRequestBody.Token = requestBody.phoneVerificationRequestBody.Token;
+                db.startConnection();
+                db.openConnection();
+                if (!procedure.executeProcedureCheckIfUserExists(requestBody.PhoneNo, requestBody.Email))
                 {
                     db.closeConnection();
                     return StatusCode(401, jsonFactory.generateBadJson("Unauthorized"));
                 }
-
-                //call otp verificaiton api
                 try
                 {
-                    OtpVerificationJsonResponseKerry resp = new OtpVerificationJsonResponseKerry();
-                    resp = await otpProvider.VerifyOTP(phoneVerificationRequestBody);
-                    if (resp.Recipient != requestBody.PhoneNo)
+                    if (checkAuthAPIKey() == false)
                     {
+                        db.closeConnection();
                         return StatusCode(401, jsonFactory.generateBadJson("Unauthorized"));
                     }
+
+                    //call otp verificaiton api
+                    try
+                    {
+                        OtpVerificationJsonResponseKerry resp = new OtpVerificationJsonResponseKerry();
+                        resp = await otpProvider.VerifyOTP(phoneVerificationRequestBody);
+                        if (resp.Recipient != requestBody.PhoneNo)
+                        {
+                            return StatusCode(401, jsonFactory.generateBadJson("Unauthorized"));
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        db.closeConnection();
+                        return StatusCode(401, jsonFactory.generateBadJson("Otp/Ref/Token incorrect"));
+                    }
                 }
-                catch(Exception)
+                catch (Exception ex)
                 {
-                    db.closeConnection();
-                    return StatusCode(401, jsonFactory.generateBadJson("Otp/Ref/Token incorrect"));
-                }              
+                    return StatusCode(401, jsonFactory.generateBadJson(ex.ToString()));
+                }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return StatusCode(401, jsonFactory.generateBadJson(ex.ToString()));
+              
+                return StatusCode(401, jsonFactory.generateBadJson("Unauthorized"));
             }
+
 
             //update password
             try
@@ -583,7 +591,7 @@ namespace AuthSA.Controllers
             catch (Exception)
             {
                 db.closeConnection();
-                return StatusCode(401, jsonFactory.generateBadJson("There is an error with the response body"));
+                return StatusCode(401, jsonFactory.generateBadJson("Unauthorized"));
             }
         }
 
