@@ -10,7 +10,7 @@ namespace AuthSA.Util
 {
     public class OTPProvider 
     {
-        Utility util = new Utility();
+        Util util = new Util();
         Database db = new Database();
        public async Task<JsonResponseFromKerry> SendOtpToPhoneHelper(string phoneNumber)
         {

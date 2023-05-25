@@ -7,7 +7,7 @@ namespace AuthSA.Service.Database
 {
     public class Procedure
     {
-        Utility util = new Utility();
+        Util.Util util = new Util.Util();
         Database db = new Database();
         public void insertIntoPasswordTable(User user, string salt)
         {

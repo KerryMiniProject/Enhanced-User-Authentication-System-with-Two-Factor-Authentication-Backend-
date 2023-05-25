@@ -2,7 +2,7 @@
 
 namespace AuthSA.Util
 {
-    public class Utility
+    public class Util
     {
 
         public bool IsValidEmail(string email)

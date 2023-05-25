@@ -40,6 +40,15 @@
 
     }
 
+    public class ForgetPasswordPhoneRequestBody
+    {
+        public string? PhoneNo { get; set; }
+        public string? Email { get; set; }
+        public string? Password { get; set; }
+        public OtpPhoneVerificationRequestBody? phoneVerificationRequestBody { get; set; }
+
+    }
+
     public class GenerateAccessTokenRequestBody
     {
         public string? RefreshToken { get; set; }
