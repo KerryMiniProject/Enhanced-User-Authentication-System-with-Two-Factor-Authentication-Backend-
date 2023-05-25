@@ -140,7 +140,7 @@ namespace AuthSA.Controllers
         }
 
         [HttpPost("/auth/verify-email-otp")]
-        public async Task<IActionResult> VerifyEmailOtp([FromBody] OtpEmailVerificationRequestBody requestBody)
+        public IActionResult VerifyEmailOtp([FromBody] OtpEmailVerificationRequestBody requestBody)
         {
             JsonResponseOtpEmailVerification response = new JsonResponseOtpEmailVerification();
 
@@ -153,6 +153,10 @@ namespace AuthSA.Controllers
             try
             {
                 bool istrue = procedure.executeProcedureVerifyEmailOtp(requestBody.Token, requestBody.Otp, requestBody.Email);
+                if (!istrue)
+                {
+                    return StatusCode(401, jsonFactory.generateBadJson("Otp is wrong or expired"));
+                }
                 response = jsonFactory.generateSuccessfulOtpEmailVerificicationResponse(requestBody, istrue);
                 db.closeConnection();
                 return Ok(response);
@@ -547,6 +551,67 @@ namespace AuthSA.Controllers
             }
         }
 
+        [HttpPost("/auth/forget-password-email")]
+        public Task<IActionResult> ForgetPasswordEmail([FromBody] ForgetPasswordEmailRequestBody requestBody)
+        {
+            db.startConnection();
+            db.openConnection();
 
+            OtpEmailVerificationRequestBody emailVerificationRequestBody = new OtpEmailVerificationRequestBody();
+            emailVerificationRequestBody.Otp = requestBody.emailVerificationRequestBody.Otp;
+            emailVerificationRequestBody.Email = requestBody.emailVerificationRequestBody.Email;
+            emailVerificationRequestBody.Token = requestBody.emailVerificationRequestBody.Token;
+            JsonResponseOtpEmailVerification response = new JsonResponseOtpEmailVerification();   
+            if (!procedure.executeProcedureCheckIfUserExists(requestBody.PhoneNo, requestBody.Email))
+            {
+                db.closeConnection();
+                return Task.FromResult<IActionResult>(StatusCode(401, jsonFactory.generateBadJson("Unauthorized")));
+            }
+            try
+            {
+                if (checkAuthAPIKey() == false)
+                {
+                    db.closeConnection();
+                    return Task.FromResult<IActionResult>(StatusCode(401, jsonFactory.generateBadJson("Unauthorized")));
+                }
+
+                //call otp verificaiton api for email
+                bool istrue = procedure.executeProcedureVerifyEmailOtp(emailVerificationRequestBody.Token, emailVerificationRequestBody.Otp, emailVerificationRequestBody.Email);
+                if (!istrue)
+                {
+                    db.closeConnection();
+                    return Task.FromResult<IActionResult>(StatusCode(401, jsonFactory.generateBadJson("Otp/Token incorrect or expired")));
+                }
+            }
+            catch (Exception ex)
+            {
+                return Task.FromResult<IActionResult>(StatusCode(401, jsonFactory.generateBadJson(ex.ToString())));
+            }
+
+            //update password
+            try
+            {
+                string hashed = passwordHasher.HashPassword(new User() { Email = requestBody.Email, PhoneNo = requestBody.PhoneNo, Password = requestBody.Password });
+                requestBody.Password = hashed;
+                ResetPasswordRequestBody resetPasswordRequestBody = new ResetPasswordRequestBody();
+                resetPasswordRequestBody.Email = requestBody.Email;
+                resetPasswordRequestBody.Password = requestBody.Password;
+                resetPasswordRequestBody.PhoneNo = requestBody.PhoneNo;
+                bool passwordIsOld = procedure.executeProcedureCheckPasswordisOld(resetPasswordRequestBody);
+                if (passwordIsOld)
+                {
+
+                    return Task.FromResult<IActionResult>(StatusCode(401, jsonFactory.generateResponseResetPassword("This password is either old or current", "401")));
+                }
+                procedure.executeProcedureResetPassword(hashed, requestBody.PhoneNo, requestBody.Email);
+                db.closeConnection();
+                return Task.FromResult<IActionResult>(Ok(jsonFactory.generateResponseResetPassword()));
+            }
+            catch (Exception)
+            {
+                db.closeConnection();
+                return Task.FromResult<IActionResult>(StatusCode(401, jsonFactory.generateBadJson("There is an error with the response body")));
+            }
+        }
     }
 }

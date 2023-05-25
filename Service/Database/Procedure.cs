@@ -473,29 +473,28 @@ namespace AuthSA.Service.Database
         {
             db.startConnection();
             db.openConnection();
-            SqlCommand ifExists = new SqlCommand("EXEC dbo.CheckOtpEmail  @Guid, @Email, @Otp", db.Connection);
-            SqlParameter guidparameter = new SqlParameter("@Guid", SqlDbType.VarChar);
-            SqlParameter emailParameter = new SqlParameter("@Email", SqlDbType.NVarChar);
-            SqlParameter otpparameter = new SqlParameter("@Otp", SqlDbType.VarChar);
-            ifExists.Parameters.Add(guidparameter);
-            ifExists.Parameters.Add(otpparameter);
-            ifExists.Parameters.Add(emailParameter);
-            ifExists.Parameters["@Guid"].Value = guid;
-            ifExists.Parameters["@Email"].Value = email;
-            ifExists.Parameters["@Otp"].Value = otp;
-            ifExists.ExecuteNonQuery();
-            SqlDataReader readerLabelDetails = ifExists.ExecuteReader();
-            string result = "";
-            if (readerLabelDetails.Read())
+
+            SqlCommand ifExists = new SqlCommand("dbo.CheckOtpEmail", db.Connection);
+            ifExists.CommandType = CommandType.StoredProcedure;
+
+            ifExists.Parameters.Add("@Guid", SqlDbType.VarChar).Value = guid;
+            ifExists.Parameters.Add("@Email", SqlDbType.NVarChar).Value = email;
+            ifExists.Parameters.Add("@Otp", SqlDbType.VarChar).Value = otp;
+
+            bool resultBool = false;
+            using (SqlDataReader readerLabelDetails = ifExists.ExecuteReader())
             {
-                result = readerLabelDetails[0].ToString();
+                if (readerLabelDetails.Read())
+                {
+                    resultBool = readerLabelDetails.GetBoolean(0);
+                }
             }
-            readerLabelDetails.Close();
+
             db.closeConnection();
-            string resultLowerCase = result.ToLower();
-            bool resultBool = Convert.ToBoolean(resultLowerCase);
+
             return resultBool;
         }
+
 
     }
 }
