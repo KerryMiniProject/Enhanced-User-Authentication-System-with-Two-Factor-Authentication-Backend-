@@ -17,6 +17,7 @@ namespace AuthSA.Controllers
         Procedure procedure = new Procedure();
         JsonFactory jsonFactory = new JsonFactory();
 
+
         public bool checkAuthAPIKey()
         {
             string apiKey = Request.Headers["API-Key"];
@@ -475,6 +476,76 @@ namespace AuthSA.Controllers
             }
         }
 
+
+        [HttpPost("/auth/forget-password-phone")]
+        public async Task<IActionResult> ForgetPasswordPhone([FromBody] ForgetPasswordPhoneRequestBody requestBody)
+        {
+
+            OtpPhoneVerificationRequestBody phoneVerificationRequestBody = new OtpPhoneVerificationRequestBody();
+            phoneVerificationRequestBody.Otp = requestBody.phoneVerificationRequestBody.Otp;
+            phoneVerificationRequestBody.Reference = requestBody.phoneVerificationRequestBody.Reference;
+            phoneVerificationRequestBody.Token = requestBody.phoneVerificationRequestBody.Token;
+            db.startConnection();
+            db.openConnection();
+            if (!procedure.executeProcedureCheckIfUserExists(requestBody.PhoneNo, requestBody.Email))
+            {
+                db.closeConnection();
+                return StatusCode(401, jsonFactory.generateBadJson("Unauthorized"));
+            }
+            try
+            {
+                if (checkAuthAPIKey() == false)
+                {
+                    db.closeConnection();
+                    return StatusCode(401, jsonFactory.generateBadJson("Unauthorized"));
+                }
+
+                //call otp verificaiton api
+                try
+                {
+                    OtpVerificationJsonResponseKerry resp = new OtpVerificationJsonResponseKerry();
+                    resp = await otpProvider.VerifyOTP(phoneVerificationRequestBody);
+                    if (resp.Recipient != requestBody.PhoneNo)
+                    {
+                        return StatusCode(401, jsonFactory.generateBadJson("Unauthorized"));
+                    }
+                }
+                catch(Exception)
+                {
+                    db.closeConnection();
+                    return StatusCode(401, jsonFactory.generateBadJson("Otp/Ref/Token incorrect"));
+                }              
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(401, jsonFactory.generateBadJson(ex.ToString()));
+            }
+
+            //update password
+            try
+            {
+                string hashed = passwordHasher.HashPassword(new User() { Email = requestBody.Email, PhoneNo = requestBody.PhoneNo, Password = requestBody.Password });
+                requestBody.Password = hashed;
+                ResetPasswordRequestBody resetPasswordRequestBody = new ResetPasswordRequestBody();
+                resetPasswordRequestBody.Email = requestBody.Email;
+                resetPasswordRequestBody.Password = requestBody.Password;
+                resetPasswordRequestBody.PhoneNo = requestBody.PhoneNo;
+                bool passwordIsOld = procedure.executeProcedureCheckPasswordisOld(resetPasswordRequestBody);
+                if (passwordIsOld)
+                {
+
+                    return StatusCode(401, jsonFactory.generateResponseResetPassword("This password is either old or current","401"));
+                }
+                procedure.executeProcedureResetPassword(hashed, requestBody.PhoneNo, requestBody.Email);
+                db.closeConnection();
+                return Ok(jsonFactory.generateResponseResetPassword());
+            }
+            catch (Exception)
+            {
+                db.closeConnection();
+                return StatusCode(401, jsonFactory.generateBadJson("There is an error with the response body"));
+            }
+        }
 
 
     }
