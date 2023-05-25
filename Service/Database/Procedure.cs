@@ -142,6 +142,26 @@ namespace AuthSA.Service.Database
             db.closeConnection();
             return userId;
         }
+
+        public string? executeProcedureGetUserIdByAccessToken(string accessToken)
+        {
+            db.startConnection();
+            db.openConnection();
+
+            SqlCommand ifExists = new SqlCommand("EXEC dbo.GetUserIdByAccessToken  @AccessToken", db.Connection);
+
+            ifExists.Parameters.AddWithValue("@AccessToken ", (object)accessToken);
+            ifExists.ExecuteNonQuery();
+            SqlDataReader readerLabelDetails = ifExists.ExecuteReader();
+            string userId = "";
+            if (readerLabelDetails.Read())
+            {
+                userId = readerLabelDetails[0].ToString();
+            }
+            readerLabelDetails.Close();
+            db.closeConnection();
+            return userId;
+        }
         public string? executeProcedureGetPassword(string email = null, string phoneNo = null)
         {
             db.startConnection();
@@ -259,6 +279,25 @@ namespace AuthSA.Service.Database
             db.closeConnection();
             bool resultBool = Convert.ToBoolean(result.ToLower());
             return resultBool;
+        }
+
+        public string? executeProcedureGetUserPhoneEmail(string userId)
+        {
+            db.startConnection();
+            db.openConnection();
+
+            SqlCommand getUserPhoneEmail = new SqlCommand("EXEC dbo.getUserEmailPhoneById  @UserId", db.Connection);
+
+            getUserPhoneEmail.Parameters.AddWithValue("@UserId", userId);
+            SqlDataReader readerLabelDetails = getUserPhoneEmail.ExecuteReader();
+            string result = "";
+            if (readerLabelDetails.Read())
+            {
+                result = readerLabelDetails[0].ToString();
+            }
+            readerLabelDetails.Close();
+            db.closeConnection();
+            return result;
         }
 
         public bool executeProcedureCheckExpiryAccessToken(string accessToken)
