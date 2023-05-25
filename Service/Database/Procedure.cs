@@ -18,6 +18,15 @@ namespace AuthSA.Service.Database
             db.closeConnection();
         }
 
+        public void insertIntoTokenTable(string userId, string tokenId)
+        {
+            db.startConnection();
+            db.openConnection();
+            SqlCommand getLabelDetails = new SqlCommand($@"INSERT INTO Token (TokenId, UserId) VALUES (N'{tokenId}', N'{userId}')", db.Connection);
+            getLabelDetails.ExecuteNonQuery();
+            db.closeConnection();
+        }
+
         public void executeProcedureInsertIntoUserStatus(string userId, string accessToken, string refreshToken)
         {
             db.startConnection();
