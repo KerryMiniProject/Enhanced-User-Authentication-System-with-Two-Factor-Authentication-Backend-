@@ -358,7 +358,6 @@ namespace AuthSA.Controllers
                 bool isCorrect = passwordHasher.VerifyPassword(requestBody.Password, requestBody.Email, requestBody.PhoneNo);
                 if (isCorrect)
                 {
-                    //Todo: Fix the generation of tokens. After generate, store the tokens, their expiry date, userId, and insert 1 in isLoggedIn
                     string? userId = procedure.executeProcedureGetUserId(requestBody.Email, requestBody.PhoneNo);
                     token.AccessToken = tokenService.GenerateAccessToken(userId);
                     token.RefreshToken = tokenService.GenerateRefreshToken();
@@ -711,6 +710,48 @@ namespace AuthSA.Controllers
             {
                 return StatusCode(401, jsonFactory.generateBadJson("Unauthorized"));
             }
+            
+        }
+
+        [HttpPost("/auth/check-if-token-in-use")]
+        public IActionResult LoginQrWeb([FromBody] QrLoginRequestBody requestBody)
+        {
+            try
+            {
+                db.startConnection();
+                db.openConnection();
+
+                //check api key
+                if (checkAuthAPIKey() == false)
+                {
+                    db.closeConnection();
+                    return StatusCode(401, jsonFactory.generateBadJson("Unauthorized"));
+                }
+
+                //accept token
+
+                //check if token is in token db
+                //if yes then get user id from the token db
+                string? userId = procedure.executeProcedureGetUserIdByTokenId(requestBody.Token);
+                if (userId.IsNullOrEmpty())
+                {
+                    db.closeConnection();
+                    return StatusCode(401, jsonFactory.generateBadJson("Unauthorized"));
+                }
+                //generate access and refresh token and insert in user status table
+                Token token = new Model.Token();
+                token.AccessToken = tokenService.GenerateAccessToken(userId);
+                token.RefreshToken = tokenService.GenerateRefreshToken();
+                procedure.executeProcedureInsertIntoUserStatus(userId, token.AccessToken, token.RefreshToken);
+                //return access and refresh token
+                return Ok(token);
+            }
+            catch (Exception)
+            {
+                return StatusCode(401, jsonFactory.generateBadJson("Unauthorized"));
+            }
+
+            
             
         }
     }
