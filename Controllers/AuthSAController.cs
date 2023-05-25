@@ -4,6 +4,7 @@ using AuthSA.Service.Database;
 using AuthSA.Util;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json;
 
 namespace AuthSA.Controllers
 {
@@ -19,7 +20,7 @@ namespace AuthSA.Controllers
         public bool checkAuthAPIKey()
         {
             string apiKey = Request.Headers["API-Key"];
-            if(apiKey == "c6db5f66-8d1a-4498-833d-d2bc2349cd06")
+            if (apiKey == "c6db5f66-8d1a-4498-833d-d2bc2349cd06")
             {
                 return true;
             }
@@ -30,28 +31,28 @@ namespace AuthSA.Controllers
         [HttpPost("/auth/sign-up")]
         public IActionResult SignUp([FromBody] User user)
         {
-            if(checkAuthAPIKey() == false)
+            if (checkAuthAPIKey() == false)
             {
                 return StatusCode(401, jsonFactory.generateBadJson("Unauthorized"));
             }
-            
+
             db.startConnection();
             db.openConnection();
-            if(procedure.executeProcedureCheckIfUserExists(PhoneNo: user.PhoneNo) || procedure.executeProcedureCheckIfUserExists(Email: user.Email))
+            if (procedure.executeProcedureCheckIfUserExists(PhoneNo: user.PhoneNo) || procedure.executeProcedureCheckIfUserExists(Email: user.Email))
             {
                 return StatusCode(401, jsonFactory.generateBadJson("User already exists"));
             }
 
-                try
-                {
-                    user.UserId = Guid.NewGuid().ToString();
-                    string hashed = passwordHasher.HashPassword(user);
-                    procedure.insertIntoUserTable(user);
-                    db.closeConnection();
-                    return Ok(jsonFactory.generateResponseSignUp());
-                }
-                catch (Exception)
-                {
+            try
+            {
+                user.UserId = Guid.NewGuid().ToString();
+                string hashed = passwordHasher.HashPassword(user);
+                procedure.insertIntoUserTable(user);
+                db.closeConnection();
+                return Ok(jsonFactory.generateResponseSignUp());
+            }
+            catch (Exception)
+            {
                 return StatusCode(401, jsonFactory.generateBadJson("There was an error"));
             }
         }
@@ -68,7 +69,7 @@ namespace AuthSA.Controllers
             }
             db.startConnection();
             db.openConnection();
-          
+
             try
             {
                 string guid = otpProvider.sendOTPEmail(emailRequest.Email);
@@ -79,9 +80,9 @@ namespace AuthSA.Controllers
             catch (Exception)
             {
                 return StatusCode(401, jsonFactory.generateBadJson("There was a problem with the response body"));
-            } 
-            
-           
+            }
+
+
         }
 
 
@@ -97,7 +98,7 @@ namespace AuthSA.Controllers
             try
             {
                 decimal phone = Convert.ToDecimal(phoneNo.PhoneNo);
-                if(phoneNo.PhoneNo.Length == 10)
+                if (phoneNo.PhoneNo.Length == 10)
                 {
                     resp = await otpProvider.SendOtpToPhoneHelper(phoneNo.PhoneNo);
                     responseOtp = jsonFactory.generateResponseOtpPhone(resp);
@@ -160,7 +161,7 @@ namespace AuthSA.Controllers
                 db.closeConnection();
                 return StatusCode(401, jsonFactory.generateBadJson("There was a problem with the request body"));
             }
-            
+
         }
 
 
@@ -171,7 +172,7 @@ namespace AuthSA.Controllers
             if (checkAuthAPIKey() == false)
             {
                 return StatusCode(401, jsonFactory.generateBadJson("Unauthorized"));
-            }   
+            }
             db.startConnection();
             db.openConnection();
 
@@ -180,36 +181,96 @@ namespace AuthSA.Controllers
                 //check if user exists in db
                 bool ifUserExists = procedure.executeProcedureCheckIfUserExists(userDetails.PhoneNo, userDetails.Email);
                 db.closeConnection();
-                return Ok(jsonFactory.generateResponseUserExist(ifUserExists));             
+                return Ok(jsonFactory.generateResponseUserExist(ifUserExists));
             }
-            catch(Exception)
+            catch (Exception)
             {
                 return StatusCode(401, jsonFactory.generateBadJson("There is an error with the response body"));
             }
-           
+
         }
 
 
         [HttpPost("/auth/reset-password")]
         public IActionResult ResetPassword([FromBody] ResetPasswordRequestBody requestBody)
         {
-
-            if (checkAuthAPIKey() == false)
+            try
             {
-                return StatusCode(401, jsonFactory.generateBadJson("Unauthorized"));
-            }
-            db.startConnection();
-            db.openConnection();
+                if (checkAuthAPIKey() == false || Request.Headers["Authorization"].IsNullOrEmpty())
+                {
+                    db.closeConnection();
+                    return StatusCode(401, jsonFactory.generateBadJson("Unauthorized"));
+                }
+                db.startConnection();
+                db.openConnection();
 
+                string accessToken;
+
+                //Get access token
+                accessToken = Request.Headers["Authorization"];
+
+                if (accessToken.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+                {
+                    accessToken = accessToken.Substring("Bearer ".Length);
+                }
+                else
+                {
+                    db.closeConnection();
+                    return StatusCode(401, jsonFactory.generateBadJson("Unauthorized"));
+                }
+
+                //check if token is expired
+                bool ifExpired = procedure.executeProcedureCheckExpiryAccessToken(accessToken);
+                if (ifExpired)
+                {
+                    db.closeConnection();
+                    return StatusCode(401, jsonFactory.generateBadJson("Token has expired"));
+                }
+
+                //take access token to get UserId
+                string? userId = procedure.executeProcedureGetUserIdByAccessToken(accessToken);
+
+                // Call the stored procedure to get user phone and email
+                string? userDetailsJson = procedure.executeProcedureGetUserPhoneEmail(userId);
+
+                // Deserialize the JSON response into an array of UserEmailPhone objects
+                UserEmailPhone[] userEmailPhones = JsonConvert.DeserializeObject<UserEmailPhone[]>(userDetailsJson);
+
+                // Extract the first UserEmailPhone object from the array
+                UserEmailPhone userPhoneEmail = userEmailPhones.FirstOrDefault();
+
+                // You can now access the email and phone number as follows:
+                string userEmail = userPhoneEmail?.Email;
+                string userPhone = userPhoneEmail?.Phone_No;
+
+                //check if requestbody email or phoneNo matches userDetails email or phoneNo
+                if (requestBody.Email != null)
+                {
+                    if (requestBody.Email != userEmail)
+                    {
+                        db.closeConnection();
+                        return StatusCode(401, jsonFactory.generateBadJson("Unauthorized"));
+                    }
+                }
+                else if (requestBody.PhoneNo != null)
+                {
+                    if (requestBody.PhoneNo != userPhone)
+                    {
+                        db.closeConnection();
+                        return StatusCode(401, jsonFactory.generateBadJson("Unauthorized"));
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(401, jsonFactory.generateBadJson(ex.ToString()));
+            }
+
+            //update password
             try
             {
 
-                //check if user exists in db
-                bool ifExists = procedure.executeProcedureCheckIfUserExists(requestBody.PhoneNo, requestBody.Email);
-                if (!ifExists)
-                {
-                    return StatusCode(401,jsonFactory.generateResponseResetPassword("The user does not exist","401"));
-                }
+
                 string hashed = passwordHasher.HashPassword(new User() { Email = requestBody.Email, PhoneNo = requestBody.PhoneNo, Password = requestBody.Password });
                 requestBody.Password = hashed;
                 bool passwordIsOld = procedure.executeProcedureCheckPasswordisOld(requestBody);
@@ -224,9 +285,9 @@ namespace AuthSA.Controllers
             }
             catch (Exception)
             {
+                db.closeConnection();
                 return StatusCode(401, jsonFactory.generateBadJson("There is an error with the response body"));
             }
-
         }
 
         [HttpPost("/auth/login")]
@@ -287,7 +348,7 @@ namespace AuthSA.Controllers
                 return StatusCode(401, jsonFactory.generateBadJson("Unauthorized"));
             }
 
-            
+
 
             try
             {
@@ -296,13 +357,13 @@ namespace AuthSA.Controllers
                     procedure.executeProcedureDeleteSession(requestBody.RefreshToken);
                     return StatusCode(401, jsonFactory.generateBadJson("Refresh Token has expired"));
                 }
-                if(!procedure.executeProcedureCheckIfTokensExist(requestBody.RefreshToken, requestBody.AccessToken))
+                if (!procedure.executeProcedureCheckIfTokensExist(requestBody.RefreshToken, requestBody.AccessToken))
                 {
                     return StatusCode(401, jsonFactory.generateBadJson("Unauthorized"));
                 }
-               
+
                 string? userId = procedure.executeProcedureGetUserIdByRefreshToken(requestBody.RefreshToken);
-                if(userId.IsNullOrEmpty())
+                if (userId.IsNullOrEmpty())
                 {
                     return StatusCode(401, jsonFactory.generateBadJson("Unauthorized"));
                 }
@@ -312,7 +373,7 @@ namespace AuthSA.Controllers
                 //update in db then return the tokens
                 procedure.executeProcedureUpdateAccessToken(requestBody.RefreshToken, token.AccessToken);
                 db.closeConnection();
-                AccessToken accessToken = new AccessToken() { accessToken = token.AccessToken};
+                AccessToken accessToken = new AccessToken() { accessToken = token.AccessToken };
                 return Ok(accessToken);
             }
             catch (Exception)
@@ -344,18 +405,18 @@ namespace AuthSA.Controllers
                     db.closeConnection();
                     return StatusCode(401, jsonFactory.generateBadJson("Unauthorized"));
                 }
-                if(!procedure.executeProcedureCheckIfAccessTokenExist(bearer) || checkAuthAPIKey() == false || bearer.IsNullOrEmpty())
+                if (!procedure.executeProcedureCheckIfAccessTokenExist(bearer) || checkAuthAPIKey() == false || bearer.IsNullOrEmpty())
                 {
                     db.closeConnection();
                     return StatusCode(401, jsonFactory.generateBadJson("Unauthorized"));
                 }
 
             }
-            catch(Exception)
+            catch (Exception)
             {
                 return StatusCode(401, jsonFactory.generateBadJson("Unauthorized"));
             }
-            
+
 
             try
             {

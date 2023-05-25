@@ -248,6 +248,8 @@ namespace AuthSA.Model
         public bool? IsValidOtp { get; set; }
     }
 
+
+
  
 
 
