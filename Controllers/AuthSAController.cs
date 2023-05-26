@@ -5,6 +5,7 @@ using AuthSA.Util;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
+using System.ComponentModel.DataAnnotations;
 
 namespace AuthSA.Controllers
 {
@@ -94,8 +95,6 @@ namespace AuthSA.Controllers
             }
         }
 
-
-
         [HttpPost("/auth/send-otp-to-email")]
         public IActionResult OtpEmail([FromBody] sendEmailOtpRequestBody emailRequest)
         {
@@ -121,7 +120,6 @@ namespace AuthSA.Controllers
 
 
         }
-
 
         [HttpPost("/auth/send-otp-to-phone")]
         public async Task<IActionResult> OtpPhone([FromBody] sendPhoneOtpRequestBody phoneNo)
@@ -233,7 +231,7 @@ namespace AuthSA.Controllers
 
 
         [HttpPost("/auth/reset-password")]
-        public IActionResult ResetPassword([FromBody] ResetPasswordRequestBody requestBody)
+        public IActionResult ResetPassword([FromHeader(Name = "Authorization")][Required] string Access, [FromBody] ResetPasswordRequestBody requestBody)
         {
             try
             {
@@ -507,7 +505,7 @@ namespace AuthSA.Controllers
         }
 
         [HttpGet("/auth/check-access-token-expiry")]
-        public IActionResult CheckAccessTokenExpiry()
+        public IActionResult CheckAccessTokenExpiry([FromHeader(Name = "Authorization")][Required] string Access)
         {
             db.startConnection();
             db.openConnection();
@@ -556,7 +554,7 @@ namespace AuthSA.Controllers
 
 
         [HttpGet("/auth/logout")]
-        public IActionResult Logout()
+        public IActionResult Logout([FromHeader(Name = "X-Access-Token")][Required] string Access, [FromHeader(Name = "X-Refresh-Token")][Required] string Refresh)
         {
             db.startConnection();
             db.openConnection();
@@ -598,7 +596,6 @@ namespace AuthSA.Controllers
                 return StatusCode(401, jsonFactory.generateBadJson("There is an error with the response body"));
             }
         }
-
 
         [HttpPost("/auth/forget-password-phone")]
         public async Task<IActionResult> ForgetPasswordPhone([FromBody] ForgetPasswordPhoneRequestBody requestBody)
@@ -741,7 +738,7 @@ namespace AuthSA.Controllers
         }
 
         [HttpPost("/auth/qr-login")]
-        public IActionResult QrLogin([FromBody]QrLoginRequestBody requestBody)
+        public IActionResult QrLogin([FromHeader(Name = "Authorization")][Required] string Access, [FromBody]QrLoginRequestBody requestBody)
         {
             try
             {
@@ -834,9 +831,7 @@ namespace AuthSA.Controllers
             {
                 return StatusCode(401, jsonFactory.generateBadJson("Unauthorized"));
             }
-
-            
-            
+    
         }
     }
 }
