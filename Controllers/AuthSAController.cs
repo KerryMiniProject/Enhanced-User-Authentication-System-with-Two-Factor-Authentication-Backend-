@@ -331,52 +331,6 @@ namespace AuthSA.Controllers
             }
         }
 
-        [HttpPost("/auth/login")]
-        public IActionResult Login([FromBody] ResetPasswordRequestBody requestBody)
-        {
-            Token token = new Token();
-            db.startConnection();
-            db.openConnection();
-            if (checkAuthAPIKey() == false)
-            {
-                return StatusCode(401, jsonFactory.generateBadJson("Unauthorized"));
-            }
-
-            db.startConnection();
-            db.openConnection();
-
-            try
-            {
-                //check if user exists in db
-                bool ifExists = procedure.executeProcedureCheckIfUserExists(requestBody.PhoneNo, requestBody.Email);
-                if (!ifExists)
-                {
-                    db.closeConnection();
-                    return StatusCode(401, jsonFactory.generateResponseResetPassword("The user does not exist", "401"));
-                }
-
-                bool isCorrect = passwordHasher.VerifyPassword(requestBody.Password, requestBody.Email, requestBody.PhoneNo);
-                if (isCorrect)
-                {
-                    string? userId = procedure.executeProcedureGetUserId(requestBody.Email, requestBody.PhoneNo);
-                    token.AccessToken = tokenService.GenerateAccessToken(userId);
-                    token.RefreshToken = tokenService.GenerateRefreshToken();
-                    procedure.executeProcedureInsertIntoUserStatus(userId, token.AccessToken, token.RefreshToken);
-
-                    return Ok(token);
-                    //gen tokens
-                }
-
-                db.closeConnection();
-                return StatusCode(401, jsonFactory.generateResponseResetPassword("Invalid", "401"));
-            }
-            catch (Exception)
-            {
-                return StatusCode(401, jsonFactory.generateBadJson("There is an error with the response body"));
-            }
-        }
-
-
         [HttpPost("/auth/login-by-phone")]
         public async Task<IActionResult> LoginByPhoneAsync([FromBody] LoginByPhone requestBody)
         {
