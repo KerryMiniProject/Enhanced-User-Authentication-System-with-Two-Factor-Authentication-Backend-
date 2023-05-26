@@ -11,14 +11,22 @@ namespace AuthSA.Controllers
 {
     public class AuthSAController : Controller
     {
-        TokenService tokenService = new TokenService("abcdefghijklmnopqrstuvwxyz");
-        PasswordHasher passwordHasher = new PasswordHasher();
-        OTPProvider otpProvider = new OTPProvider();
-        Database db = new Database();
-        Procedure procedure = new Procedure();
-        JsonFactory jsonFactory = new JsonFactory();
+        private readonly TokenService tokenService;
+        private readonly PasswordHasher passwordHasher;
+        private readonly OTPProvider otpProvider;
+        private readonly Database db;
+        private readonly Procedure procedure;
+        private readonly JsonFactory jsonFactory;
 
-
+        public AuthSAController(TokenService _tokenService, PasswordHasher _passwordHasher, OTPProvider _otpProvider, Database _db, Procedure _procedure, JsonFactory _jsonFactory)
+        {
+            tokenService = _tokenService;
+            passwordHasher = _passwordHasher;
+            otpProvider = _otpProvider;
+            db = _db;
+            procedure = _procedure;
+            jsonFactory = _jsonFactory;
+        }
         public bool checkAuthAPIKey()
         {
             string apiKey = Request.Headers["API-Key"];
@@ -126,12 +134,13 @@ namespace AuthSA.Controllers
         {
             JsonResponseOtp responseOtp = new JsonResponseOtp();
             JsonResponseFromKerry resp = new JsonResponseFromKerry();
-            if (checkAuthAPIKey() == false)
-            {
-                return StatusCode(401, jsonFactory.generateBadJson("Unauthorized"));
-            }
+            
             try
             {
+                if (checkAuthAPIKey() == false)
+                {
+                    return StatusCode(401, jsonFactory.generateBadJson("Unauthorized"));
+                }
                 decimal phone = Convert.ToDecimal(phoneNo.PhoneNo);
                 if (phoneNo.PhoneNo.Length == 10)
                 {

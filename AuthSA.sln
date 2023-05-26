@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.33530.505
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AuthSA", "AuthSA.csproj", "{E98D5664-ACE0-489F-9167-9BC861B9D0CB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AuthSA", "AuthSA.csproj", "{E98D5664-ACE0-489F-9167-9BC861B9D0CB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestProject", "..\TestProject\TestProject.csproj", "{04FDCAFA-30E6-487E-B65C-18FEEEBD76B9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{E98D5664-ACE0-489F-9167-9BC861B9D0CB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E98D5664-ACE0-489F-9167-9BC861B9D0CB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E98D5664-ACE0-489F-9167-9BC861B9D0CB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{04FDCAFA-30E6-487E-B65C-18FEEEBD76B9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{04FDCAFA-30E6-487E-B65C-18FEEEBD76B9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{04FDCAFA-30E6-487E-B65C-18FEEEBD76B9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{04FDCAFA-30E6-487E-B65C-18FEEEBD76B9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

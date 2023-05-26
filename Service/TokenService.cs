@@ -8,12 +8,8 @@
 
     public class TokenService
     {
-        private readonly string _secretKey;
+        private readonly string _secretKey = "abcdefghijklmnopqrstuvwxyz";
 
-        public TokenService(string secretKey)
-        {
-            _secretKey = secretKey;
-        }
 
         public string GenerateAccessToken(string userId)
         {

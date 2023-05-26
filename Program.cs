@@ -2,12 +2,26 @@ using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.Filters;
 using Microsoft.AspNetCore.Authorization;
 using Swashbuckle.AspNetCore.SwaggerGen;
+using AuthSA.Model;
+using AuthSA.Service.Database;
+using AuthSA.Service;
+using AuthSA.Util;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
 builder.Services.AddControllers();
+
+// Register your services here
+builder.Services.AddScoped<TokenService>();
+builder.Services.AddScoped<PasswordHasher>();
+builder.Services.AddScoped<OTPProvider>();
+builder.Services.AddScoped<Database>();
+builder.Services.AddScoped<Procedure>();
+builder.Services.AddScoped<JsonFactory>();
+
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
