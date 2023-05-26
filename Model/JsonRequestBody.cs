@@ -46,6 +46,13 @@
         public OtpPhoneVerificationRequestBody? phoneVerificationRequestBody { get; set; }
     }
 
+    public class LoginByEmail
+    {
+        public string? Email { get; set; }
+        public string? Password { get; set; }
+        public OtpEmailVerificationRequestBody? emailVerificationRequestBody { get; set; }
+    }
+
     public class QrLoginRequestBody
     {
         public string? Token { get; set; }
