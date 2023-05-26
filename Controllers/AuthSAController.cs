@@ -442,6 +442,71 @@ namespace AuthSA.Controllers
             }
         }
 
+        [HttpPost("/auth/login-by-email")]
+        public async Task<IActionResult> LoginByEmail([FromBody] LoginByEmail requestBody)
+        {
+            Token token = new Token();
+
+            OtpEmailVerificationRequestBody emailVerificationRequestBody = new OtpEmailVerificationRequestBody();
+            emailVerificationRequestBody.Otp = requestBody.emailVerificationRequestBody.Otp;
+            emailVerificationRequestBody.Token = requestBody.emailVerificationRequestBody.Token;
+            JsonResponseOtpEmailVerification jsonResponseOtpEmailVerification = new JsonResponseOtpEmailVerification();
+            if (checkAuthAPIKey() == false)
+            {
+                return StatusCode(401, jsonFactory.generateBadJson("Unauthorized"));
+            }
+
+            db.startConnection();
+            db.openConnection();
+
+            try
+            {
+                //check if user exists in db
+                bool ifExists = procedure.executeProcedureCheckIfUserExists(Email: requestBody.Email);
+                if (!ifExists)
+                {
+                    db.closeConnection();
+                    return StatusCode(401, jsonFactory.generateResponseResetPassword("The user does not exist", "401"));
+                }
+
+                //call otp verificaiton api
+                try
+                {
+                    //call otp verificaiton api for email
+                    string email = procedure.executeProcedureVerifyEmailOtp(emailVerificationRequestBody.Token, emailVerificationRequestBody.Otp);
+                    if (email.IsNullOrEmpty() || email != requestBody.Email)
+                    {
+                        db.closeConnection();
+                        return await Task.FromResult<IActionResult>(StatusCode(401, jsonFactory.generateBadJson("Otp/Token incorrect or expired")));
+                    }
+                }
+                catch (Exception)
+                {
+                    db.closeConnection();
+                    return StatusCode(401, jsonFactory.generateBadJson("Otp/Ref/Token incorrect"));
+                }
+
+                //login
+                bool isCorrect = passwordHasher.VerifyPassword(requestBody.Password, email: requestBody.Email);
+                if (isCorrect)
+                {
+                    string? userId = procedure.executeProcedureGetUserId(email: requestBody.Email);
+                    token.AccessToken = tokenService.GenerateAccessToken(userId);
+                    token.RefreshToken = tokenService.GenerateRefreshToken();
+                    procedure.executeProcedureInsertIntoUserStatus(userId, token.AccessToken, token.RefreshToken);
+
+                    return Ok(token);
+                    //gen tokens
+                }
+
+                db.closeConnection();
+                return StatusCode(401, jsonFactory.generateResponseResetPassword("Invalid", "401"));
+            }
+            catch (Exception)
+            {
+                return StatusCode(401, jsonFactory.generateBadJson("There is an error with the response body"));
+            }
+        }
         [HttpPost("/auth/generate-access-token")]
         public IActionResult GetNewAccessToken([FromBody] GenerateAccessTokenRequestBody requestBody)
         {
