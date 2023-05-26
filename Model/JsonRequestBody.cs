@@ -39,6 +39,13 @@
 
     }
 
+    public class LoginByPhone
+    {
+        public string? PhoneNo { get; set; }
+        public string? Password { get; set; }
+        public OtpPhoneVerificationRequestBody? phoneVerificationRequestBody { get; set; }
+    }
+
     public class QrLoginRequestBody
     {
         public string? Token { get; set; }

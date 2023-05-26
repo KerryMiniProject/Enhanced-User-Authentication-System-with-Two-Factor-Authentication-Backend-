@@ -377,6 +377,71 @@ namespace AuthSA.Controllers
         }
 
 
+        [HttpPost("/auth/login-by-phone")]
+        public async Task<IActionResult> LoginByPhoneAsync([FromBody] LoginByPhone requestBody)
+        {
+            Token token = new Token();
+
+            OtpPhoneVerificationRequestBody phoneVerificationRequestBody = new OtpPhoneVerificationRequestBody();
+            phoneVerificationRequestBody.Otp = requestBody.phoneVerificationRequestBody.Otp;
+            phoneVerificationRequestBody.Reference = requestBody.phoneVerificationRequestBody.Reference;
+            phoneVerificationRequestBody.Token = requestBody.phoneVerificationRequestBody.Token;
+            if (checkAuthAPIKey() == false)
+            {
+                return StatusCode(401, jsonFactory.generateBadJson("Unauthorized"));
+            }
+
+            db.startConnection();
+            db.openConnection();
+
+            try
+            {
+                //check if user exists in db
+                bool ifExists = procedure.executeProcedureCheckIfUserExists(requestBody.PhoneNo);
+                if (!ifExists)
+                {
+                    db.closeConnection();
+                    return StatusCode(401, jsonFactory.generateResponseResetPassword("The user does not exist", "401"));
+                }
+
+                //call otp verificaiton api
+                try
+                {
+                    OtpVerificationJsonResponseKerry resp = new OtpVerificationJsonResponseKerry();
+                    resp = await otpProvider.VerifyOTP(phoneVerificationRequestBody);
+                    if (resp.Recipient != requestBody.PhoneNo)
+                    {
+                        return StatusCode(401, jsonFactory.generateBadJson("Unauthorized"));
+                    }
+                }
+                catch (Exception)
+                {
+                    db.closeConnection();
+                    return StatusCode(401, jsonFactory.generateBadJson("Otp/Ref/Token incorrect"));
+                }
+
+                //login
+                bool isCorrect = passwordHasher.VerifyPassword(requestBody.Password, phoneNo: requestBody.PhoneNo);
+                if (isCorrect)
+                {
+                    string? userId = procedure.executeProcedureGetUserId(phoneNo: requestBody.PhoneNo);
+                    token.AccessToken = tokenService.GenerateAccessToken(userId);
+                    token.RefreshToken = tokenService.GenerateRefreshToken();
+                    procedure.executeProcedureInsertIntoUserStatus(userId, token.AccessToken, token.RefreshToken);
+
+                    return Ok(token);
+                    //gen tokens
+                }
+
+                db.closeConnection();
+                return StatusCode(401, jsonFactory.generateResponseResetPassword("Invalid", "401"));
+            }
+            catch (Exception)
+            {
+                return StatusCode(401, jsonFactory.generateBadJson("There is an error with the response body"));
+            }
+        }
+
         [HttpPost("/auth/generate-access-token")]
         public IActionResult GetNewAccessToken([FromBody] GenerateAccessTokenRequestBody requestBody)
         {
