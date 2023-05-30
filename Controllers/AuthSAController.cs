@@ -853,6 +853,10 @@ namespace AuthSA.Controllers
                     return StatusCode(401, jsonFactory.generateBadJson("Wrong Format"));
                 }
                 email = procedure.ExecuteProcedureGetEmailByPhoneNumber(requestBody.phoneNo);
+                if (email.IsNullOrEmpty())
+                {
+                    return StatusCode(401, jsonFactory.generateBadJson("Phone number or Email does not exist"));
+                }
                 return Ok(jsonFactory.generateSuccessfulGetEmailResponse(email));
             }
             catch(Exception e)
@@ -881,6 +885,10 @@ namespace AuthSA.Controllers
                     return StatusCode(401, jsonFactory.generateBadJson("Wrong Format"));
                 }
                 phoneNo = procedure.ExecuteProcedureGetPhoneNumberByEmail(requestBody.email);
+                if (phoneNo.IsNullOrEmpty())
+                {
+                    return StatusCode(401, jsonFactory.generateBadJson("Phone number or Email does not exist"));
+                }
                 return Ok(jsonFactory.generateSuccessfulGetPhoneNoResponse(phoneNo));
             }
             catch (Exception e)
