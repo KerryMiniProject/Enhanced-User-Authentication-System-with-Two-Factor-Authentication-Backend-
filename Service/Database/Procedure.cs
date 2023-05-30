@@ -234,6 +234,58 @@ namespace AuthSA.Service.Database
             return salt;
         }
 
+        public string? ExecuteProcedureGetPhoneNumberByEmail(string email)
+        {
+            db.startConnection();
+            db.openConnection();
+
+            if (string.IsNullOrEmpty(email))
+                throw new ArgumentException("Email cannot be null or empty.");
+
+            SqlCommand command = new SqlCommand("EXEC dbo.GetPhoneNumberByEmail @InputEmail", db.Connection);
+            command.Parameters.AddWithValue("@InputEmail", email);
+
+            SqlDataReader reader = command.ExecuteReader();
+            string phoneNumber = string.Empty;
+
+            if (reader.Read())
+            {
+                phoneNumber = reader[0].ToString();
+            }
+
+            reader.Close();
+            db.closeConnection();
+
+            return phoneNumber;
+        }
+
+        public string? ExecuteProcedureGetEmailByPhoneNumber(string phoneNumber)
+        {
+            db.startConnection();
+            db.openConnection();
+
+            if (string.IsNullOrEmpty(phoneNumber))
+                throw new ArgumentException("Phone number cannot be null or empty.");
+
+            SqlCommand command = new SqlCommand("EXEC dbo.GetEmailByPhoneNumber @InputPhoneNumber", db.Connection);
+            command.Parameters.AddWithValue("@InputPhoneNumber", phoneNumber);
+
+            SqlDataReader reader = command.ExecuteReader();
+            string email = string.Empty;
+
+            if (reader.Read())
+            {
+                email = reader[0].ToString();
+            }
+
+            reader.Close();
+            db.closeConnection();
+
+            return email;
+        }
+
+
+
         public void insertIntoUserTable(User user)
         {
             db.startConnection();

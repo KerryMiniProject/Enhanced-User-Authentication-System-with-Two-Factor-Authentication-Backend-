@@ -142,6 +142,30 @@ namespace AuthSA.Model
             return jsonResponse;
         }
 
+        public JsonResponseGetEmail generateSuccessfulGetEmailResponse(string email)
+        {
+            JsonResponseGetEmail jsonResponse = new JsonResponseGetEmail();
+            jsonResponse.error = false;
+            jsonResponse.code = "200";
+            jsonResponse.description = "OK";
+            jsonResponse.display = "Successful";
+            jsonResponse.email = email;
+
+            return jsonResponse;
+        }
+
+        public JsonResponseGetPhoneNo generateSuccessfulGetPhoneNoResponse(string phoneNo)
+        {
+            JsonResponseGetPhoneNo jsonResponse = new JsonResponseGetPhoneNo();
+            jsonResponse.error = false;
+            jsonResponse.code = "200";
+            jsonResponse.description = "OK";
+            jsonResponse.display = "Successful";
+            jsonResponse.phoneNo = phoneNo;
+
+            return jsonResponse;
+        }
+
     }
 
 
@@ -160,6 +184,24 @@ namespace AuthSA.Model
         public string? code { get; set; }
         public string? description { get; set; }
         public string? display { get; set; }
+    }
+
+    public class JsonResponseGetEmail
+    {
+        public bool? error { get; set; }
+        public string? code { get; set; }
+        public string? description { get; set; }
+        public string? display { get; set; }
+        public string? email { get; set; }
+    }
+
+    public class JsonResponseGetPhoneNo
+    {
+        public bool? error { get; set; }
+        public string? code { get; set; }
+        public string? description { get; set; }
+        public string? display { get; set; }
+        public string? phoneNo { get; set; }
     }
 
     public class JsonResponseOtpEmail

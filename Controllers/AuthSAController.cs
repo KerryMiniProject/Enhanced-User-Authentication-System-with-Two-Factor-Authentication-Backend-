@@ -833,5 +833,63 @@ namespace AuthSA.Controllers
             }
     
         }
+
+        [HttpPost("/auth/get-email")]
+        public IActionResult GetEmailByPhoneNo([FromBody] getEmailFromPhoneRequestBody requestBody)
+        {
+            //check api key
+            if (checkAuthAPIKey() == false)
+            {
+                db.closeConnection();
+                return StatusCode(401, jsonFactory.generateBadJson("Unauthorized"));
+            }
+
+            Util.Util util = new Util.Util();
+            string? email;
+            try
+            {
+                if (!util.IsValidPhoneNumber(requestBody.phoneNo))
+                {
+                    return StatusCode(401, jsonFactory.generateBadJson("Wrong Format"));
+                }
+                email = procedure.ExecuteProcedureGetEmailByPhoneNumber(requestBody.phoneNo);
+                return Ok(jsonFactory.generateSuccessfulGetEmailResponse(email));
+            }
+            catch(Exception e)
+            {
+                return StatusCode(401, jsonFactory.generateBadJson("There was a problem with the response body"));
+            }
+            
+        }
+
+        [HttpPost("/auth/get-phone-no")]
+        public IActionResult GetPhoneNoByEmail([FromBody] getPhoneFromPhoneRequestBody requestBody)
+        {
+            //check api key
+            if (checkAuthAPIKey() == false)
+            {
+                db.closeConnection();
+                return StatusCode(401, jsonFactory.generateBadJson("Unauthorized"));
+            }
+
+            Util.Util util = new Util.Util();
+            string? phoneNo;
+            try
+            {
+                if (!util.IsValidEmail(requestBody.email))
+                {
+                    return StatusCode(401, jsonFactory.generateBadJson("Wrong Format"));
+                }
+                phoneNo = procedure.ExecuteProcedureGetPhoneNumberByEmail(requestBody.email);
+                return Ok(jsonFactory.generateSuccessfulGetPhoneNoResponse(phoneNo));
+            }
+            catch (Exception e)
+            {
+                return StatusCode(401, jsonFactory.generateBadJson("There was a problem with the response body"));
+            }
+
+        }
+
+
     }
 }

@@ -24,6 +24,16 @@
         public string? Email { get; set; }
     }
 
+    public class getEmailFromPhoneRequestBody
+    {
+        public string? phoneNo { get; set; }
+    }
+
+    public class getPhoneFromPhoneRequestBody
+    {
+        public string? email { get; set; }
+    }
+
     public class checkUserExistsRequestBody
     {
         public string? PhoneNo { get; set; }
