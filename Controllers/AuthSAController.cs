@@ -898,6 +898,45 @@ namespace AuthSA.Controllers
 
         }
 
+        [HttpPost("/auth/check-credentials")]
+        public IActionResult CheckCredentials([FromBody] checkCredentialsRequestBody requestBody)
+        {
+            try
+            {
+                db.startConnection();
+                db.openConnection();
+                //check api key
+                if (checkAuthAPIKey() == false)
+                {
+                    db.closeConnection();
+                    return StatusCode(401, jsonFactory.generateBadJson("Unauthorized"));
+                }
 
+                //check if user exists in db
+                bool ifExists = procedure.executeProcedureCheckIfUserExists(Email: requestBody.Email, PhoneNo: requestBody.PhoneNo);
+                if (!ifExists)
+                {
+                    db.closeConnection();
+                    return StatusCode(401, jsonFactory.generateResponseResetPassword("The user does not exist", "401"));
+                }
+
+                //login
+                bool isCorrect = passwordHasher.VerifyPassword(requestBody.Password, email: requestBody.Email, phoneNo: requestBody.PhoneNo);
+                if (isCorrect)
+                {
+                    db.closeConnection();
+                    return Ok(jsonFactory.generateSuccessfulCheckCredentials(isCorrect));
+                }
+                else
+                {
+                    db.closeConnection();
+                    return StatusCode(401,jsonFactory.generateSuccessfulCheckCredentials(isCorrect));
+                }
+            }
+            catch (Exception)
+            {
+                return StatusCode(401,jsonFactory.generateBadJson("There is an error with the response body"));
+            }
+        }
     }
 }

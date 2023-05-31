@@ -34,6 +34,14 @@
         public string? email { get; set; }
     }
 
+    public class checkCredentialsRequestBody
+    {
+        public string? Email { get; set; }
+        public string? PhoneNo { get; set; }
+        public string? Password { get; set; }
+
+    }
+
     public class checkUserExistsRequestBody
     {
         public string? PhoneNo { get; set; }

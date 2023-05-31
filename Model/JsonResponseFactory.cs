@@ -7,7 +7,7 @@ namespace AuthSA.Model
         public JsonResponseResetPassword? generateResponseResetPassword(string message = null, string code=null)
         {
             JsonResponseResetPassword response = new JsonResponseResetPassword();
-            response.error = false;
+            response.error = (code.Equals("200"))? false: true;
             response.code = (code != null) ? code: "200";
             response.description = (code != null) ? "Failed":"Successful";
             response.display = (message != null) ? message : "Reset Password Successful";
@@ -154,6 +154,17 @@ namespace AuthSA.Model
             return jsonResponse;
         }
 
+        public JsonResponseCheckCredentials generateSuccessfulCheckCredentials(bool isCorrect)
+        {
+            JsonResponseCheckCredentials jsonResponse = new JsonResponseCheckCredentials();
+            jsonResponse.error = !isCorrect;
+            jsonResponse.code = (isCorrect) ? "200":"401";
+            jsonResponse.description = "OK";
+            jsonResponse.display = (isCorrect) ? "Successful" : "Wrong password";
+            jsonResponse.isCorrect = isCorrect;
+            return jsonResponse;
+        }
+
         public JsonResponseGetPhoneNo generateSuccessfulGetPhoneNoResponse(string phoneNo)
         {
             JsonResponseGetPhoneNo jsonResponse = new JsonResponseGetPhoneNo();
@@ -168,6 +179,14 @@ namespace AuthSA.Model
 
     }
 
+    public class JsonResponseCheckCredentials
+    {
+        public bool? error { get; set; }
+        public string? code { get; set; }
+        public string? description { get; set; }
+        public string? display { get; set; }
+        public bool? isCorrect { get; set; }
+    }
 
     public class JsonResponseIfUserExists
     {
