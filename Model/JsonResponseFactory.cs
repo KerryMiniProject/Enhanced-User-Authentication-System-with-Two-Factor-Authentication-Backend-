@@ -7,9 +7,9 @@ namespace AuthSA.Model
         public JsonResponseResetPassword? generateResponseResetPassword(string message = null, string code=null)
         {
             JsonResponseResetPassword response = new JsonResponseResetPassword();
-            response.error = (code.Equals("200"))? false: true;
             response.code = (code != null) ? code: "200";
-            response.description = (code != null) ? "Failed":"Successful";
+            response.error = (response.code.Equals("200")) ? false : true;
+            response.description = (response.code != null) ? "Successful" : "Failed";
             response.display = (message != null) ? message : "Reset Password Successful";
             return response;
         }

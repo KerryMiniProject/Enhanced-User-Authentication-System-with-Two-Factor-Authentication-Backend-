@@ -115,7 +115,7 @@ namespace AuthSA.Controllers
             }
             catch (Exception)
             {
-                return StatusCode(401, jsonFactory.generateBadJson("There was a problem with the response body"));
+                return StatusCode(401, jsonFactory.generateBadJson("There was a problem with the request body"));
             }
 
 
@@ -143,7 +143,7 @@ namespace AuthSA.Controllers
             }
             catch (Exception)
             {
-                return StatusCode(401, jsonFactory.generateBadJson("There was a problem with the response body"));
+                return StatusCode(401, jsonFactory.generateBadJson("There was a problem with the request body"));
             }
         }
 
@@ -169,7 +169,7 @@ namespace AuthSA.Controllers
             catch (Exception)
             {
                 db.closeConnection();
-                return StatusCode(401, jsonFactory.generateBadJson("There was a problem with the response body"));
+                return StatusCode(401, jsonFactory.generateBadJson("There was a problem with the request body"));
             }
         }
 
@@ -224,7 +224,7 @@ namespace AuthSA.Controllers
             }
             catch (Exception)
             {
-                return StatusCode(401, jsonFactory.generateBadJson("There is an error with the response body"));
+                return StatusCode(401, jsonFactory.generateBadJson("There is an error with the request body"));
             }
 
         }
@@ -325,7 +325,7 @@ namespace AuthSA.Controllers
             catch (Exception)
             {
                 db.closeConnection();
-                return StatusCode(401, jsonFactory.generateBadJson("There is an error with the response body"));
+                return StatusCode(401, jsonFactory.generateBadJson("There is an error with the request body"));
             }
         }
 
@@ -390,7 +390,7 @@ namespace AuthSA.Controllers
             }
             catch (Exception)
             {
-                return StatusCode(401, jsonFactory.generateBadJson("There is an error with the response body"));
+                return StatusCode(401, jsonFactory.generateBadJson("There is an error with the request body"));
             }
         }
 
@@ -456,7 +456,7 @@ namespace AuthSA.Controllers
             }
             catch (Exception)
             {
-                return StatusCode(401, jsonFactory.generateBadJson("There is an error with the response body"));
+                return StatusCode(401, jsonFactory.generateBadJson("There is an error with the request body"));
             }
         }
         [HttpPost("/auth/generate-access-token")]
@@ -500,7 +500,7 @@ namespace AuthSA.Controllers
             }
             catch (Exception)
             {
-                return StatusCode(401, jsonFactory.generateBadJson("There is an error with the response body"));
+                return StatusCode(401, jsonFactory.generateBadJson("There is an error with the request body"));
             }
         }
 
@@ -548,7 +548,7 @@ namespace AuthSA.Controllers
             }
             catch (Exception)
             {
-                return StatusCode(401, jsonFactory.generateBadJson("There is an error with the response body"));
+                return StatusCode(401, jsonFactory.generateBadJson("There is an error with the request body"));
             }
         }
 
@@ -593,7 +593,7 @@ namespace AuthSA.Controllers
             catch (Exception)
             {
                 db.closeConnection();
-                return StatusCode(401, jsonFactory.generateBadJson("There is an error with the response body"));
+                return StatusCode(401, jsonFactory.generateBadJson("There is an error with the request body"));
             }
         }
 
@@ -733,7 +733,7 @@ namespace AuthSA.Controllers
             catch (Exception)
             {
                 db.closeConnection();
-                return Task.FromResult<IActionResult>(StatusCode(401, jsonFactory.generateBadJson("There is an error with the response body")));
+                return Task.FromResult<IActionResult>(StatusCode(401, jsonFactory.generateBadJson("There is an error with the request body")));
             }
         }
 
@@ -861,7 +861,7 @@ namespace AuthSA.Controllers
             }
             catch(Exception e)
             {
-                return StatusCode(401, jsonFactory.generateBadJson("There was a problem with the response body"));
+                return StatusCode(401, jsonFactory.generateBadJson("There was a problem with the request body"));
             }
             
         }
@@ -893,8 +893,8 @@ namespace AuthSA.Controllers
             }
             catch (Exception e)
             {
-                return StatusCode(401, jsonFactory.generateBadJson("There was a problem with the response body"));
-            }
+                return StatusCode(401, jsonFactory.generateBadJson("There was a problem with the request body"));
+            }   
 
         }
 
@@ -935,7 +935,30 @@ namespace AuthSA.Controllers
             }
             catch (Exception)
             {
-                return StatusCode(401,jsonFactory.generateBadJson("There is an error with the response body"));
+                return StatusCode(401,jsonFactory.generateBadJson("There is an error with the request body"));
+            }
+        }
+
+        [HttpPost("/god-mode/delete-user")]
+        public IActionResult DeleteUser([FromBody] sendEmailOtpRequestBody requestBody)
+        {
+            try
+            {
+                db.startConnection();
+                db.openConnection();
+
+                procedure.executeProcedureDeleteUserByEmail(requestBody.Email);
+                bool ifExists = procedure.executeProcedureCheckIfUserExists(Email: requestBody.Email);
+                db.closeConnection();
+                if (!ifExists)
+                {
+                    return Ok("User doesnt exist");
+                }
+                return Ok("User deleted");
+            }
+            catch(Exception)
+            {
+                throw new Exception("There was a problem");
             }
         }
     }

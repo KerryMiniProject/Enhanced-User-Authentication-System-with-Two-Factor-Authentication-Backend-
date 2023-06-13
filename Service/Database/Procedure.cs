@@ -554,6 +554,17 @@ namespace AuthSA.Service.Database
             SqlDataReader readerLabelDetails = ifExists.ExecuteReader();
         }
 
+        public void executeProcedureDeleteUserByEmail(string email)
+        {
+            db.startConnection();
+            db.openConnection();
+
+            SqlCommand deleteCommand = new SqlCommand("EXEC dbo.DeleteUserByEmail @Email", db.Connection);
+            deleteCommand.Parameters.AddWithValue("@Email", email);
+            deleteCommand.ExecuteNonQuery();
+            db.closeConnection();
+        }
+
 
         public string executeProcedureVerifyEmailOtp(string guid, string otp)
         {
