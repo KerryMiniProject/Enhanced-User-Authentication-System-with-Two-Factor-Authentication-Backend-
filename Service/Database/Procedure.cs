@@ -497,7 +497,7 @@ namespace AuthSA.Service.Database
 
             ifExists.Parameters.AddWithValue("@Email", (object)resetPasswordRequestBody.Email ?? DBNull.Value);
             ifExists.Parameters.AddWithValue("@PhoneNo", (object)resetPasswordRequestBody.PhoneNo ?? DBNull.Value);
-            ifExists.Parameters.AddWithValue("@NewPassword", (object)resetPasswordRequestBody.Password);
+            ifExists.Parameters.AddWithValue("@NewPassword", (object)resetPasswordRequestBody.NewPassword);
 
             if (resetPasswordRequestBody.Email != null && !util.IsValidEmail(resetPasswordRequestBody.Email))
             {

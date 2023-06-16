@@ -235,15 +235,20 @@ namespace AuthSA.Controllers
         {
             try
             {
+                bool api = checkAuthAPIKey();
+                bool header = Request.Headers["Authorization"].IsNullOrEmpty();
+                string accessToken;
+
+                //Get access token
+                accessToken = Request.Headers["Authorization"];
                 if (checkAuthAPIKey() == false || Request.Headers["Authorization"].IsNullOrEmpty())
                 {
-                    db.closeConnection();
                     return StatusCode(401, jsonFactory.generateBadJson("Unauthorized"));
                 }
                 db.startConnection();
                 db.openConnection();
 
-                string accessToken;
+                //string accessToken;
 
                 //Get access token
                 accessToken = Request.Headers["Authorization"];
@@ -300,25 +305,32 @@ namespace AuthSA.Controllers
                     }
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return StatusCode(401, jsonFactory.generateBadJson(ex.ToString()));
+                return StatusCode(401, jsonFactory.generateBadJson("There was an error"));
             }
 
             //update password
             try
             {
+                //check if old password is entered is the correct password
+                bool isCorrect = passwordHasher.VerifyPassword(password: requestBody.CurrentPassword, phoneNo: requestBody.PhoneNo, email: requestBody.Email);
+                if (!isCorrect)
+                {
+                    return StatusCode(401, jsonFactory.generateResponseResetPassword("The current password is wrong"));
+                }
 
-
-                string hashed = passwordHasher.HashPassword(new User() { Email = requestBody.Email, PhoneNo = requestBody.PhoneNo, Password = requestBody.Password });
-                requestBody.Password = hashed;
+                //check if new password is old
+                string hashedNewPassword = passwordHasher.HashPassword(new User() { Email = requestBody.Email, PhoneNo = requestBody.PhoneNo, Password = requestBody.NewPassword });
+                requestBody.NewPassword = hashedNewPassword;
                 bool passwordIsOld = procedure.executeProcedureCheckPasswordisOld(requestBody);
                 if (passwordIsOld)
                 {
 
-                    return StatusCode(401, jsonFactory.generateResponseResetPassword("This password is either old or current"));
+                    return StatusCode(401, jsonFactory.generateResponseResetPassword("The new password is either old or current"));
                 }
-                procedure.executeProcedureResetPassword(hashed, requestBody.PhoneNo, requestBody.Email);
+
+                procedure.executeProcedureResetPassword(hashedNewPassword, requestBody.PhoneNo, requestBody.Email);
                 db.closeConnection();
                 return Ok(jsonFactory.generateResponseResetPassword());
             }
@@ -656,7 +668,7 @@ namespace AuthSA.Controllers
                 requestBody.Password = hashed;
                 ResetPasswordRequestBody resetPasswordRequestBody = new ResetPasswordRequestBody();
                 resetPasswordRequestBody.Email = requestBody.Email;
-                resetPasswordRequestBody.Password = requestBody.Password;
+                resetPasswordRequestBody.NewPassword = requestBody.Password;
                 resetPasswordRequestBody.PhoneNo = requestBody.PhoneNo;
                 bool passwordIsOld = procedure.executeProcedureCheckPasswordisOld(resetPasswordRequestBody);
                 if (passwordIsOld)
@@ -718,7 +730,7 @@ namespace AuthSA.Controllers
                 requestBody.Password = hashed;
                 ResetPasswordRequestBody resetPasswordRequestBody = new ResetPasswordRequestBody();
                 resetPasswordRequestBody.Email = requestBody.Email;
-                resetPasswordRequestBody.Password = requestBody.Password;
+                resetPasswordRequestBody.NewPassword = requestBody.Password;
                 resetPasswordRequestBody.PhoneNo = requestBody.PhoneNo;
                 bool passwordIsOld = procedure.executeProcedureCheckPasswordisOld(resetPasswordRequestBody);
                 if (passwordIsOld)
