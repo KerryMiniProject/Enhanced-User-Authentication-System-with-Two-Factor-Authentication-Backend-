@@ -165,6 +165,17 @@ namespace AuthSA.Model
             return jsonResponse;
         }
 
+        public JsonResponseGetUserDetails generateGetUserDetailsResponse(bool isError, UserInfo userInfo)
+        {
+            JsonResponseGetUserDetails jsonResponse = new JsonResponseGetUserDetails();
+            jsonResponse.error = isError;
+            jsonResponse.code = (isError) ? "401" : "200";
+            jsonResponse.description = "OK";
+            jsonResponse.display = (isError) ? "Failure" : "Successful";
+            jsonResponse.userInfo = userInfo;
+            return jsonResponse;
+        }
+
         public JsonResponseGetPhoneNo generateSuccessfulGetPhoneNoResponse(string phoneNo)
         {
             JsonResponseGetPhoneNo jsonResponse = new JsonResponseGetPhoneNo();
@@ -195,6 +206,15 @@ namespace AuthSA.Model
         public string? code { get; set; }
         public string? description { get; set; }
         public string? display { get; set; }
+    }
+
+    public class JsonResponseGetUserDetails
+    {
+        public bool? error { get; set; }
+        public string? code { get; set; }
+        public string? description { get; set; }
+        public string? display { get; set; }
+        public UserInfo? userInfo { get; set; }
     }
 
     public class JsonResponseSignUp

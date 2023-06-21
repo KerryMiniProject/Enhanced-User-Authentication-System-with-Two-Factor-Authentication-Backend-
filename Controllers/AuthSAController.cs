@@ -392,9 +392,9 @@ namespace AuthSA.Controllers
                     token.AccessToken = tokenService.GenerateAccessToken(userId);
                     token.RefreshToken = tokenService.GenerateRefreshToken();
                     procedure.executeProcedureInsertIntoUserStatus(userId, token.AccessToken, token.RefreshToken);
-
-                    return Ok(token);
                     //gen tokens
+                    return Ok(token);
+                    
                 }
 
                 db.closeConnection();
@@ -757,7 +757,6 @@ namespace AuthSA.Controllers
                 //accept access token in header and qr token in body
                 if (checkAuthAPIKey() == false || Request.Headers["Authorization"].IsNullOrEmpty())
                 {
-                    db.closeConnection();
                     return StatusCode(401, jsonFactory.generateBadJson("Unauthorized"));
                 }
                 db.startConnection();
@@ -971,6 +970,59 @@ namespace AuthSA.Controllers
             catch(Exception)
             {
                 throw new Exception("There was a problem");
+            }
+        }
+
+        [HttpGet("/auth/get-user-details")]
+        public IActionResult GetUserDetails([FromHeader(Name = "Authorization")][Required] string Access)
+        {
+            try
+            {
+                //accept access token in header and qr token in body
+                if (checkAuthAPIKey() == false || Request.Headers["Authorization"].IsNullOrEmpty())
+                {
+                    return StatusCode(401, jsonFactory.generateBadJson("Unauthorized"));
+                }
+                db.startConnection();
+                db.openConnection();
+
+                string accessToken;
+
+                //Get access token
+                accessToken = Request.Headers["Authorization"];
+
+                if (accessToken.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+                {
+                    accessToken = accessToken.Substring("Bearer ".Length);
+                }
+                else
+                {
+                    db.closeConnection();
+                    return StatusCode(401, jsonFactory.generateBadJson("Unauthorized"));
+                }
+
+                //check if token is expired
+                bool ifExpired = procedure.executeProcedureCheckExpiryAccessToken(accessToken);
+                if (ifExpired)
+                {
+                    db.closeConnection();
+                    return StatusCode(401, jsonFactory.generateBadJson("Token has expired"));
+                }
+
+                //take access token to get UserId
+                string? userId = procedure.executeProcedureGetUserIdByAccessToken(accessToken);
+                if (userId.IsNullOrEmpty())
+                {
+                    return StatusCode(401, jsonFactory.generateBadJson("Unauthorized"));
+                }
+
+                UserInfo userInfo = procedure.ExecuteProcedureGetUserDetailsById(userId);
+
+                return Ok(jsonFactory.generateGetUserDetailsResponse(false,userInfo));
+            }
+            catch (Exception)
+            {
+                return StatusCode(401, jsonFactory.generateBadJson("Unauthorized"));
             }
         }
     }

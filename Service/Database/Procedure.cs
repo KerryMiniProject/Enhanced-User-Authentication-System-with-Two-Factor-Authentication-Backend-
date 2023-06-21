@@ -132,6 +132,43 @@ namespace AuthSA.Service.Database
             return userId;
         }
 
+        public UserInfo ExecuteProcedureGetUserDetailsById(string userID)
+        {
+            if (string.IsNullOrEmpty(userID))
+                throw new ArgumentException("User ID cannot be null or empty.");
+
+            db.startConnection();
+            db.openConnection();
+
+            if (userID == null)
+            {
+                db.closeConnection();
+                throw new Exception("Invalid User ID format.");
+            }
+
+            SqlCommand command = new SqlCommand("GetUserDetailsById", db.Connection);
+            command.CommandType = CommandType.StoredProcedure;
+            command.Parameters.AddWithValue("@UserID", userID);
+
+            SqlDataReader reader = command.ExecuteReader();
+
+            string[] userDetails = null;
+            UserInfo userInfo = new UserInfo();
+            if (reader.Read())
+            {
+                userInfo.firstName = reader["First_Name"].ToString();
+                userInfo.lastName = reader["Last_Name"].ToString();
+                userInfo.email = reader["Email"].ToString();
+                userInfo.phoneNo = reader["Phone_No"].ToString();
+            }
+
+            reader.Close();
+            db.closeConnection();
+
+            return userInfo;
+        }
+
+
         public string? executeProcedureGetUserIdByRefreshToken(string refreshToken)
         {
             db.startConnection();
